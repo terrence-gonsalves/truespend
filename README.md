@@ -1,8 +1,6 @@
-# CSV Budgeting SaaS
+# TrueSpend - Privacy-First Budgeting SaaS
 
-A privacy-first, lightweight personal finance and budgeting application
-that allows users to import CSV transaction files, categorize spending,
-and manage monthly budgets --- without bank integrations.
+A lightweight, CSV-based personal budgeting application built with Next.js and Supabase.
 
 Built with Next.js, Supabase, and Vercel.
 
@@ -60,26 +58,41 @@ Built with Next.js, Supabase, and Vercel.
 
 ## 🔧 Installation
 
-1.  Clone Repository
+### 1.  Clone Repository
 
 ```bash
   git clone https://github.com/your-username/your-repo.git 
   cd your-repo
 ```
 
-2.  Install Dependencies
+### 2.  Install Dependencies
 
 ```bash
   npm install
 ```
 
-3.  Configure Environment
+### 3.  Configure Environment
 
 Create .env.local:
 
 ```bash
   NEXT_PUBLIC_SUPABASE_URL=your_url
   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+```
+
+### 4. Link Supabase Project
+
+```bash
+  supabase login
+  supabase link --project-ref your_project_ref_id
+```
+
+Find your project reference ID in Project Settings → General
+
+### 5. Generate TypeScript Types
+
+```bash
+npm run types:generate
 ```
 
 Restart server after changes.
@@ -98,8 +111,8 @@ Uses Supabase Magic Links.
 Ensure redirect URLs are configured in Supabase Dashboard:
 
 ```text
-https://yourdomain.com/dashboard 
-http://localhost:3000/dashboard
+  https://yourdomain.com/dashboard 
+  http://localhost:3000/dashboard
 ```
 
 ## 📥 CSV Import Flow
@@ -158,7 +171,6 @@ Features:
 - Per-user isolation
 
 ## 📊 Performance Targets
-
     
 | Area | Target |
 | :--- |  ---: |
@@ -187,7 +199,7 @@ vercel --prod
 
 ## 🛣 Roadmap
 
-Phase 1
+### Phase 1
 
 - Auth
 - CSV Import
@@ -195,14 +207,14 @@ Phase 1
 - Categories
 - Dashboard
 
-Phase 2
+### Phase 2
 
 - Rules Engine
 - Budgets
 - Stripe
 - Reports
 
-Phase 3
+### Phase 3
 
 - PWA
 - AI Categorization
