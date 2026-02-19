@@ -1,28 +1,28 @@
 import crypto from 'crypto';
 
 export interface ParsedCSV {
-    headers: string[];
-    rows: string[][];
-    rowCount: number;
+    headers: string[]
+    rows: string[][]
+    rowCount: number
 };
 
 export interface ColumnMapping {
-    date: number | null;
-    description: number | null;
-    amount: number | null;
-    category?: number | null;
-    account?: number | null;
-    balance?: number | null;
+    date: number | null
+    description: number | null
+    amount: number | null
+    category?: number | null
+    account?: number | null
+    balance?: number | null
 };
 
 export interface TransactionRow {
-    date: string;
-    description: string;
-    amount: number;
-    category?: string;
-    account?: string;
-    isIncome: boolean;
-    hash: string;
+    date: string
+    description: string
+    amount: number
+    category?: string
+    account?: string
+    isIncome: boolean
+    hash: string
 };
 
 /**
@@ -30,7 +30,7 @@ export interface TransactionRow {
  */
 export function parseCSV(content: string): ParsedCSV {
     const lines = content.split('\n').filter(line => line.trim());
-  
+
     if (lines.length === 0) {
         throw new Error('CSV file is empty');
     }
@@ -73,6 +73,7 @@ function parseCSVLine(line: string): string[] {
     }
 
     result.push(current.trim());
+
     return result;
 }
 
@@ -81,6 +82,7 @@ function parseCSVLine(line: string): string[] {
  */
 export function autoDetectColumns(headers: string[]): Partial<ColumnMapping> {
     const mapping: Partial<ColumnMapping> = {};
+
     const datePatterns = /date|posted|transaction.*date/i;
     const descriptionPatterns = /description|memo|details|merchant|payee/i;
     const amountPatterns = /amount|value|sum|debit|credit/i;
@@ -94,22 +96,27 @@ export function autoDetectColumns(headers: string[]): Partial<ColumnMapping> {
         if (!mapping.date && datePatterns.test(cleanHeader)) {
             mapping.date = index;
         }
+
         if (!mapping.description && descriptionPatterns.test(cleanHeader)) {
             mapping.description = index;
         }
+
         if (!mapping.amount && amountPatterns.test(cleanHeader)) {
             mapping.amount = index;
         }
+
         if (!mapping.category && categoryPatterns.test(cleanHeader)) {
             mapping.category = index;
         }
+
         if (!mapping.account && accountPatterns.test(cleanHeader)) {
             mapping.account = index;
         }
+
         if (!mapping.balance && balancePatterns.test(cleanHeader)) {
             mapping.balance = index;
         }
-    })
+    });
 
     return mapping;
 }
@@ -122,14 +129,14 @@ export function parseDate(dateStr: string): string | null {
 
     // try various date formats
     const formats = [
-        /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // MM/DD/YYYY
-        /^(\d{4})-(\d{1,2})-(\d{1,2})$/, // YYYY-MM-DD
+        /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // MM/DD/YYYY    
+        /^(\d{4})-(\d{1,2})-(\d{1,2})$/, // YYYY-MM-DD    
         /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // DD/MM/YYYY
     ];
 
     for (const format of formats) {
         const match = dateStr.match(format);
-    
+
         if (match) {
             const date = new Date(dateStr);
 
@@ -141,9 +148,8 @@ export function parseDate(dateStr: string): string | null {
 
     // try native Date parsing as fallback
     const date = new Date(dateStr);
-
     if (!isNaN(date.getTime())) {
-        return date.toISOString().split('T')[0];
+    return date.toISOString().split('T')[0];
     }
 
     return null;
@@ -153,7 +159,7 @@ export function parseDate(dateStr: string): string | null {
  * Parse amount string to number
  */
 export function parseAmount(amountStr: string): number | null {
-     if (!amountStr) return null;
+    if (!amountStr) return null;
 
     // remove currency symbols, commas, and whitespace
     const cleaned = amountStr
@@ -161,12 +167,10 @@ export function parseAmount(amountStr: string): number | null {
         .replace(/[()]/g, '') // remove parentheses (often used for negative)
         .trim();
 
-        // check if amount was in parentheses (negative)
-        const isNegative = amountStr.includes('(') && amountStr.includes(')');
-
+    // check if amount was in parentheses (negative)
+    const isNegative = amountStr.includes('(') && amountStr.includes(')');
 
     const amount = parseFloat(cleaned);
-
     if (isNaN(amount)) return null;
 
     return isNegative ? -Math.abs(amount) : amount;
@@ -238,7 +242,7 @@ export function mapRowsToTransactions(
  */
 export function validateCSVFile(file: File): { valid: boolean; error?: string } {
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-  
+    
     if (file.size > MAX_FILE_SIZE) {
         return { valid: false, error: 'File size exceeds 10MB limit' };
     }
