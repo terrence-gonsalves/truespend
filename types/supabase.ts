@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -124,6 +123,33 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_system?: boolean | null
+          name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      column_mapping_presets: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          mapping: Json
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          mapping: Json
+          name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          mapping?: Json
           name?: string
           user_id?: string | null
         }
