@@ -116,7 +116,7 @@ export function autoDetectColumns(headers: string[]): Partial<ColumnMapping> {
         if (!mapping.balance && balancePatterns.test(cleanHeader)) {
             mapping.balance = index;
         }
-    });
+    })
 
     return mapping;
 }
@@ -128,9 +128,9 @@ export function parseDate(dateStr: string): string | null {
     if (!dateStr) return null;
 
     // try various date formats
-    const formats = [
-        /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // MM/DD/YYYY    
-        /^(\d{4})-(\d{1,2})-(\d{1,2})$/, // YYYY-MM-DD    
+    const formats = [    
+        /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // MM/DD/YYYY         
+        /^(\d{4})-(\d{1,2})-(\d{1,2})$/, // YYYY-MM-DD        
         /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // DD/MM/YYYY
     ];
 
@@ -148,8 +148,9 @@ export function parseDate(dateStr: string): string | null {
 
     // try native Date parsing as fallback
     const date = new Date(dateStr);
+
     if (!isNaN(date.getTime())) {
-    return date.toISOString().split('T')[0];
+        return date.toISOString().split('T')[0];
     }
 
     return null;
@@ -171,6 +172,7 @@ export function parseAmount(amountStr: string): number | null {
     const isNegative = amountStr.includes('(') && amountStr.includes(')');
 
     const amount = parseFloat(cleaned);
+
     if (isNaN(amount)) return null;
 
     return isNegative ? -Math.abs(amount) : amount;
@@ -247,7 +249,7 @@ export function validateCSVFile(file: File): { valid: boolean; error?: string } 
         return { valid: false, error: 'File size exceeds 10MB limit' };
     }
 
-    if (!file.name.endsWith('.csv')) {
+    if (!file.name.toLowerCase().endsWith('.csv')) {
         return { valid: false, error: 'Only CSV files are allowed' };
     }
 
