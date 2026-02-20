@@ -109,7 +109,7 @@ export function ImportWizard() {
                                     <span className="ml-3 text-sm font-medium text-gray-500">{step.name}</span>
                                 </span>
                             </div>
-                            )};
+                            )}
 
                             {stepIdx !== steps.length - 1 && (
                             <div className="absolute top-4 left-[calc(50%+2rem)] hidden h-0.5 w-full bg-gray-200 lg:block">
@@ -118,10 +118,10 @@ export function ImportWizard() {
                                     style={{ width: step.status === 'complete' ? '100%' : '0%' }}
                                 />
                             </div>
-                            )};
+                            )}
 
                         </li>
-                        ))};
+                        ))}
 
                     </ol>
                 </nav>
@@ -129,7 +129,7 @@ export function ImportWizard() {
             <div className="px-6 py-8">
                 {currentStep === 'upload' && (
                 <UploadStep onComplete={handleUploadComplete} />
-                )};
+                )}
 
                 {currentStep === 'mapping' && csvData && (
                 <MappingStep 

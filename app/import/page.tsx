@@ -1,4 +1,4 @@
-import { ImportWizard } from '@/components/import/import-wizard';
+import { ImportWizard } from '@/components/import/import-wizrd';
 
 export default function ImportPage() {
     return (
