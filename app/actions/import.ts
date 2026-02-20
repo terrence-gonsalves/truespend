@@ -1,24 +1,24 @@
-'use server';
+    'use server';
 
-import { createClient } from '@/lib/supabase/server';
-import { type ColumnMapping, type TransactionRow } from '@/lib/csv-utils';
-import { revalidatePath } from 'next/cache';
-import type { Json } from '@/types/supabase';
+    import { createClient } from '@/lib/supabase/server';
+    import { type ColumnMapping, type TransactionRow } from '@/lib/csv-utils';
+    import { revalidatePath } from 'next/cache';
+    import type { Json } from '@/types/supabase';
 
 export async function ensureDefaultCategories() {
-    const supabase = await createClient(); 
-    const { data: { user } } = await supabase.auth.getUser(); 
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        throw new Error('Unauthorized'); 
+        throw new Error('Unauthorized');
     }
 
-    // Check if user already has categories
+    // check if user already has categories
     const { data: existingCategories } = await supabase
         .from('categories')
         .select('id')
         .eq('user_id', user.id)
-        .limit(1); 
+        .limit(1);
 
     if (existingCategories && existingCategories.length > 0) {
         return; // categories already exist
@@ -144,7 +144,7 @@ export async function importTransactions(
     const transactionsToInsert = transactions.map(t => {
         let categoryId = defaultCategoryId;
 
-        // Try to map category by name if provided
+        // try to map category by name if provided
         if (t.category) {
             const mappedCategoryId = categoryMap.get(t.category.toLowerCase());
 
@@ -164,12 +164,17 @@ export async function importTransactions(
             is_income: t.isIncome,
             hash: t.hash
         };
-    })
+    });
+
+    // deduplicate by hash to avoid conflict error
+    const uniqueTransactions = Array.from(
+        new Map(transactionsToInsert.map(t => [t.hash, t])).values()
+    );
 
     // insert transactions (will upsert on conflict due to unique index on hash + user_id)
     const { data: insertedTransactions, error: insertError } = await supabase
         .from('transactions')
-        .upsert(transactionsToInsert, {
+        .upsert(uniqueTransactions, {
             onConflict: 'hash,user_id',
             ignoreDuplicates: false
         })
@@ -214,7 +219,7 @@ export async function saveColumnMapping(name: string, mapping: ColumnMapping) {
         throw new Error('Unauthorized');
     }
 
-    // Convert ColumnMapping to a plain object that matches Json type
+    // convert ColumnMapping to a plain object that matches Json type
     const mappingJson: Record<string, number | null | undefined> = {
         date: mapping.date,
         description: mapping.description,
