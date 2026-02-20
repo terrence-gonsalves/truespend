@@ -101,7 +101,6 @@ export function MappingStep({ csvData, onComplete, onBack }: MappingStepProps) {
         }
 
         onComplete(mapping, transactions);
-
     }
 
     const isValid = mapping.date !== null && mapping.description !== null && mapping.amount !== null;
@@ -130,7 +129,7 @@ export function MappingStep({ csvData, onComplete, onBack }: MappingStepProps) {
                     >
                         {preset.name}
                     </button>
-                    ))};
+                    ))}
 
                 </div>
             </div>
@@ -152,7 +151,7 @@ export function MappingStep({ csvData, onComplete, onBack }: MappingStepProps) {
                                 >
                                     {header}
                                 </th>
-                                ))};
+                                ))}
                                 
                             </tr>
                         </thead>
@@ -165,10 +164,10 @@ export function MappingStep({ csvData, onComplete, onBack }: MappingStepProps) {
                                 <td key={cellIdx} className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
                                     {cell}
                                 </td>
-                                ))};
+                                ))}
 
                             </tr>
-                            ))};
+                            ))}
 
                         </tbody>
                     </table>
@@ -191,7 +190,7 @@ export function MappingStep({ csvData, onComplete, onBack }: MappingStepProps) {
                         <option key={idx} value={idx}>
                             {header}
                         </option>
-                        ))};
+                        ))}
 
                     </select>
                 </div>
@@ -211,7 +210,7 @@ export function MappingStep({ csvData, onComplete, onBack }: MappingStepProps) {
                         <option key={idx} value={idx}>
                             {header}
                         </option>
-                        ))};
+                        ))}
 
                     </select>
                 </div>
@@ -231,7 +230,7 @@ export function MappingStep({ csvData, onComplete, onBack }: MappingStepProps) {
                         <option key={idx} value={idx}>
                             {header}
                         </option>
-                        ))};
+                        ))}
 
                     </select>
                 </div>
@@ -251,7 +250,7 @@ export function MappingStep({ csvData, onComplete, onBack }: MappingStepProps) {
                         <option key={idx} value={idx}>
                             {header}
                         </option>
-                        ))};
+                        ))}
 
                     </select>
                 </div>
@@ -271,7 +270,7 @@ export function MappingStep({ csvData, onComplete, onBack }: MappingStepProps) {
                         <option key={idx} value={idx}>
                             {header}
                         </option>
-                        ))};
+                        ))}
 
                     </select>
                 </div>
@@ -291,7 +290,7 @@ export function MappingStep({ csvData, onComplete, onBack }: MappingStepProps) {
                         <option key={idx} value={idx}>
                             {header}
                         </option>
-                        ))};
+                        ))}
 
                     </select>
                 </div>
@@ -327,7 +326,7 @@ export function MappingStep({ csvData, onComplete, onBack }: MappingStepProps) {
                     Cancel
                 </button>
             </div>
-            )};
+            )}
             
             <div className="flex justify-between pt-4 border-t border-gray-200">
                 <button
