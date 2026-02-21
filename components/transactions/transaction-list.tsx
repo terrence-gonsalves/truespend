@@ -5,44 +5,7 @@ import { getTransactions, getCategories, getAccounts, type TransactionFilters } 
 import { TransactionTable } from './transaction-table';
 import { TransactionFilters as Filters } from './transaction-filters';
 import { BulkActions } from './bulk-actions';
-
-interface Transaction {
-    id: string
-    date: string
-    description: string
-    amount: number
-    category_id: string | null
-    account_id: string | null
-    is_income: boolean
-    category?: {
-        id: string
-        name: string
-        color: string | null
-    }
-    account?: {
-        id: string
-        name: string
-        institution: string | null
-    }
-};
-
-interface Category {
-    id: string
-    name: string
-    color: string | null
-    is_system: boolean | null
-    user_id: string | null
-    archived: boolean | null
-    created_at: string | null
-};
-
-interface Account {
-    id: string
-    name: string
-    institution: string | null
-    user_id: string | null
-    created_at: string | null
-};
+import type { Transaction, Category, Account } from '@/types/transactions';
 
 export function TransactionList() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -87,7 +50,6 @@ export function TransactionList() {
                 getCategories(),
                 getAccounts()
             ]);
-
             setCategories(cats);
             setAccounts(accts);
         } catch (error) {
@@ -135,12 +97,12 @@ export function TransactionList() {
             />
             
             {selectedIds.length > 0 && (
-            <BulkActions
+                <BulkActions
                 selectedIds={selectedIds}
                 categories={categories}
                 accounts={accounts}
                 onComplete={handleBulkActionComplete}
-            />
+                />
             )}
             
             <div className="bg-white rounded-lg shadow p-4">
@@ -157,7 +119,7 @@ export function TransactionList() {
 
                 </div>
             </div>
-            
+
             <TransactionTable
                 transactions={transactions}
                 categories={categories}
@@ -215,6 +177,7 @@ export function TransactionList() {
                 </div>
             </div>
             )}
+
         </div>
     );
 }

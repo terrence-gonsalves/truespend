@@ -2,18 +2,7 @@
 
 import { useState } from 'react';
 import type { TransactionFilters as Filters } from '@/app/actions/transaction';
-
-interface Category {
-    id: string
-    name: string
-    color: string | null
-};
-
-interface Account {
-    id: string
-    name: string
-    institution: string | null
-};
+import type { Category, Account } from '@/types/transactions';
 
 interface TransactionFiltersProps {
     filters: Filters
@@ -50,7 +39,7 @@ export function TransactionFilters({
         setCategoryId('');
         setAccountId('');
         setTransactionType('all');
-        onFilterChange({ transactionType: 'all' });
+        onFilterChange({ transactionType: 'all' });    
     };
 
     const hasActiveFilters = dateFrom || dateTo || categoryId || accountId || transactionType !== 'all';
@@ -68,7 +57,8 @@ export function TransactionFilters({
                         onChange={(e) => setDateFrom(e.target.value)}
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     />
-                </div>                
+                </div>
+                
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         To Date
@@ -79,7 +69,8 @@ export function TransactionFilters({
                         onChange={(e) => setDateTo(e.target.value)}
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     />
-                </div>                
+                </div>
+                
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Category
@@ -98,7 +89,8 @@ export function TransactionFilters({
                         ))}
 
                     </select>
-                </div>                
+                </div>
+                
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Account
@@ -118,6 +110,7 @@ export function TransactionFilters({
 
                     </select>
                 </div>
+                
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Type
@@ -136,8 +129,8 @@ export function TransactionFilters({
             
             <div className="mt-4 flex gap-2">
                 <button
-                    onClick={handleApplyFilters}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                onClick={handleApplyFilters}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
                 >
                     Apply Filters
                 </button>
@@ -150,7 +143,7 @@ export function TransactionFilters({
                     Clear Filters
                 </button>
                 )}
-
+                
             </div>
         </div>
     );

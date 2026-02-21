@@ -2,38 +2,7 @@
 
 import { TransactionRow } from './transaction-row';
 import { TransactionCard } from './transaction-card';
-
-interface Transaction {
-    id: string
-    date: string
-    description: string
-    amount: number
-    category_id: string | null
-    account_id: string | null
-    is_income: boolean
-    category?: {
-        id: string
-        name: string
-        color: string | null
-    }
-    account?: {
-        id: string
-        name: string
-        institution: string | null
-    }
-};
-
-interface Category {
-    id: string
-    name: string
-    color: string | null
-};
-
-interface Account {
-    id: string
-    name: string
-    institution: string | null
-};
+import type { Transaction, Category, Account } from '@/types/transactions';
 
 interface TransactionTableProps {
     transactions: Transaction[]
@@ -83,7 +52,6 @@ export function TransactionTable({
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                 </svg>
-
                 <h3 className="mt-2 text-sm font-medium text-gray-900">No transactions</h3>
                 <p className="mt-1 text-sm text-gray-500">
                     Import a CSV file to get started with tracking your transactions.
