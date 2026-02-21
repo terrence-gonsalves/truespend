@@ -18,7 +18,7 @@ export default function ImportPage() {
                     <Link href="/dashboard" className="text-sm text-blue-600 hover:text-blue-700">
                         Back to Dashboard
                     </Link>
-            </div>
+                </div>
             </div>
         </div>
     )
