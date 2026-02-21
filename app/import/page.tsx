@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { ImportWizard } from '@/components/import/import-wizrd';
 
 export default function ImportPage() {
@@ -12,6 +13,12 @@ export default function ImportPage() {
                 </div>
             
                 <ImportWizard />
+
+                <div className="mt-6">
+                    <Link href="/dashboard" className="text-sm text-blue-600 hover:text-blue-700">
+                        Back to Dashboard
+                    </Link>
+            </div>
             </div>
         </div>
     )
