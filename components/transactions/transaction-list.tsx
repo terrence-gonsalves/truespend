@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getTransactions, getCategories, getAccounts, type TransactionFilters } from '@/app/actions/transactions';
+import { getTransactions, getCategories, getAccounts, type TransactionFilters } from '@/app/actions/transaction';
 import { TransactionTable } from './transaction-table';
 import { TransactionFilters as Filters } from './transaction-filters';
 import { BulkActions } from './bulk-actions';
@@ -79,7 +79,7 @@ export function TransactionList() {
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     const loadCategoriesAndAccounts = async () => {
         try {
