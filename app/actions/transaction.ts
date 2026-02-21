@@ -3,9 +3,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
-// re-export from import actions for convenience
-export { getCategories, getAccounts } from './import';
-
 export interface TransactionFilters {
     dateFrom?: string
     dateTo?: string
@@ -29,10 +26,10 @@ export async function getTransactions(
     let query = supabase
         .from('transactions')
         .select(`
-            *,
-            category:categories(id, name, color),
-            account:accounts(id, name, institution)
-            `, { count: 'exact' })
+        *,
+        category:categories(id, name, color),
+        account:accounts(id, name, institution)
+        `, { count: 'exact' })
         .eq('user_id', user.id);
 
     // apply filters
@@ -91,7 +88,7 @@ export async function updateTransaction(
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {;
+    if (!user) {
         throw new Error('Unauthorized');
     }
 
