@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getTransactions, getCategories, getAccounts, type TransactionFilters } from '@/app/actions/transaction';
+import { getTransactions, type TransactionFilters } from '@/app/actions/transaction';
+import { getCategories, getAccounts } from '@/app/actions/import';
 import { TransactionTable } from './transaction-table';
 import { TransactionFilters as Filters } from './transaction-filters';
 import { BulkActions } from './bulk-actions';
@@ -119,7 +120,7 @@ export function TransactionList() {
 
                 </div>
             </div>
-
+            
             <TransactionTable
                 transactions={transactions}
                 categories={categories}
@@ -177,7 +178,7 @@ export function TransactionList() {
                 </div>
             </div>
             )}
-
+            
         </div>
-    );
+    )
 }
