@@ -46,14 +46,20 @@ export default async function DashboardPage() {
                         </div>
                     </Link>
 
-                    <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <Link href="/transactions" className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
                         <div className="p-5">
                             <h3 className="text-lg font-medium text-gray-900">View Transactions</h3>
                             <p className="mt-2 text-sm text-gray-500">
                                 Manage and categorize your spending
                             </p>
+
+                            <div className="mt-4">
+                                <span className="text-blue-600 text-sm font-medium">
+                                    View transactions →
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    </Link>
 
                     <div className="bg-white overflow-hidden shadow rounded-lg">
                         <div className="p-5">
