@@ -159,7 +159,7 @@ export function CategoryCard({ category, onRefresh, onMerge }: CategoryCardProps
                     <div className="flex justify-between items-baseline">
                         <span className="text-sm text-gray-500">Total spent</span>
                         <span className="text-2xl font-semibold text-gray-900">
-                            ${formatCurrency(category.totalSpent)}
+                            {formatCurrency(category.totalSpent)}
                         </span>
                     </div>
                     <div className="flex justify-between items-baseline">
