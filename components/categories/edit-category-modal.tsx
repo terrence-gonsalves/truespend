@@ -3,15 +3,11 @@
 import { useState, useEffect } from 'react';
 import { updateCategory } from '@/app/actions/categories';
 import { CATEGORY_COLORS } from '@/lib/colors';
+import type { Category } from '@/types/transactions';
 
 interface EditCategoryModalProps {
     isOpen: boolean
-    category: {
-        id: string
-        name: string
-        color: string | null
-        is_system: boolean | undefined
-    }
+    category: Category
     onClose: () => void
     onSuccess: () => void
 };
@@ -26,12 +22,12 @@ export function EditCategoryModal({ isOpen, category, onClose, onSuccess }: Edit
         setColor(category.color || CATEGORY_COLORS[0].value);
     }, [category]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
         
         if (!category.is_system && !name.trim()) {
             alert('Please enter a category name');
-            
+
             return;
         }
 
@@ -47,9 +43,9 @@ export function EditCategoryModal({ isOpen, category, onClose, onSuccess }: Edit
         } finally {
             setSaving(false);
         }
-    }
+    };
 
-  if (!isOpen) return null;
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -74,10 +70,10 @@ export function EditCategoryModal({ isOpen, category, onClose, onSuccess }: Edit
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                disabled={saving || category.is_system}
+                                disabled={saving || !!category.is_system}
                                 autoFocus={!category.is_system}
                             />
-                            
+
                             {category.is_system && (
                             <p className="mt-1 text-xs text-gray-500">
                                 System category names cannot be changed
@@ -85,7 +81,6 @@ export function EditCategoryModal({ isOpen, category, onClose, onSuccess }: Edit
                             )}
 
                         </div>
-                        
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Color
@@ -98,7 +93,7 @@ export function EditCategoryModal({ isOpen, category, onClose, onSuccess }: Edit
                                     type="button"
                                     onClick={() => setColor(colorOption.value)}
                                     className={`w-10 h-10 rounded-lg border-2 transition-all ${
-                                        color === colorOption.value
+                                    color === colorOption.value
                                         ? 'border-blue-600 scale-110'
                                         : 'border-transparent hover:scale-105'
                                     }`}
@@ -132,5 +127,5 @@ export function EditCategoryModal({ isOpen, category, onClose, onSuccess }: Edit
                 </div>
             </div>
         </div>
-    );
+    )
 }

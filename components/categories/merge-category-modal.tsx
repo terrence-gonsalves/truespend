@@ -2,16 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { mergeCategories } from '@/app/actions/categories';
+import type { Category } from '@/types/transactions';
+
+interface CategoryWithStats extends Category {
+    totalSpent: number
+    transactionCount: number
+};
 
 interface MergeCategoryModalProps {
     isOpen: boolean
-    categories: Array<{
-        id: string
-        name: string
-        color: string | null
-        is_system: boolean | null
-        transactionCount: number
-    }>
+    categories: CategoryWithStats[]
     selectedCategoryId: string | null
     onClose: () => void
     onSuccess: () => void
@@ -30,11 +30,11 @@ export function MergeCategoryModal({
 
     useEffect(() => {
         if (selectedCategoryId) {
-            setFromCategoryId(selectedCategoryId);
+        setFromCategoryId(selectedCategoryId);
         }
     }, [selectedCategoryId]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
         
         if (!fromCategoryId || !toCategoryId) {
@@ -56,7 +56,7 @@ export function MergeCategoryModal({
             alert('Invalid category selection');
 
             return;
-        }
+        };
 
         const confirmed = window.confirm(
             `Are you sure you want to merge "${fromCategory.name}" into "${toCategory.name}"? This will move ${fromCategory.transactionCount} transactions and delete "${fromCategory.name}". This action cannot be undone.`
