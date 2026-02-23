@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { importTransactions, getCategories, getAccounts, createAccount } from '@/app/actions/import';
+import { formatCurrency } from '@/lib/format';
 import type { TransactionRow } from '@/lib/csv-utils';
 
 interface Category {
@@ -41,27 +42,27 @@ export function ReviewStep({ transactions, filename, onComplete, onBack }: Revie
 
     useEffect(() => {
         const loadData = async () => {
-            try {
-                const [cats, accts] = await Promise.all([
+        try {
+            const [cats, accts] = await Promise.all([
                     getCategories(),
                     getAccounts()
                 ]);
-
                 setCategories(cats);
                 setAccounts(accts);
 
-                // auto-select "Uncategorized" if available
-                const uncategorized = cats.find(c => c.name === 'Uncategorized');
+            // auto-select "Uncategorized" if available
+            const uncategorized = cats.find(c => c.name === 'Uncategorized');
 
-                if (uncategorized) {
-                    setSelectedCategoryId(uncategorized.id);
-                }
-            } catch (error) {
-                console.error('Failed to load data:', error);
+            if (uncategorized) {
+                setSelectedCategoryId(uncategorized.id);
             }
-        };
+        } catch (error) {
+            console.error('Failed to load data:', error);
+        }
+        }
 
         loadData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleCreateAccount = async () => {
@@ -93,12 +94,10 @@ export function ReviewStep({ transactions, filename, onComplete, onBack }: Revie
                 selectedAccountId || null,
                 filename
             );
-
             onComplete(result);
         } catch (error) {
             console.error('Import failed:', error);
             alert('Import failed. Please try again.');
-
             setImporting(false);
         }
     };
@@ -128,14 +127,14 @@ export function ReviewStep({ transactions, filename, onComplete, onBack }: Revie
                 <div className="bg-green-50 rounded-lg p-4">
                     <p className="text-sm font-medium text-green-600">Income</p>
                     <p className="mt-2 text-3xl font-semibold text-green-900">
-                        ${stats.totalIncome.toFixed(2)}
+                        {formatCurrency(stats.totalIncome)}
                     </p>
                     <p className="text-sm text-green-600">{stats.income} transactions</p>
                 </div>
                 <div className="bg-red-50 rounded-lg p-4">
                     <p className="text-sm font-medium text-red-600">Expenses</p>
                     <p className="mt-2 text-3xl font-semibold text-red-900">
-                        ${stats.totalExpenses.toFixed(2)}
+                        {formatCurrency(stats.totalExpenses)}
                     </p>
                     <p className="text-sm text-red-600">{stats.expenses} transactions</p>
                 </div>
@@ -172,7 +171,7 @@ export function ReviewStep({ transactions, filename, onComplete, onBack }: Revie
                     <p className="text-xs text-gray-500 mt-1">
                         Which account are these transactions from?
                     </p>
-
+                    
                     {!showNewAccount ? (
                     <div className="mt-2 flex gap-2">
                         <select
@@ -189,7 +188,6 @@ export function ReviewStep({ transactions, filename, onComplete, onBack }: Revie
                             ))}
 
                         </select>
-
                         <button
                             onClick={() => setShowNewAccount(true)}
                             className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 whitespace-nowrap"
@@ -213,7 +211,6 @@ export function ReviewStep({ transactions, filename, onComplete, onBack }: Revie
                             placeholder="Institution (optional, e.g., 'Chase Bank')"
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         />
-
                         <div className="flex gap-2">
                             <button
                                 onClick={handleCreateAccount}
@@ -230,7 +227,8 @@ export function ReviewStep({ transactions, filename, onComplete, onBack }: Revie
                             </button>
                         </div>
                     </div>
-                )}
+                    )}
+
                 </div>
             </div>
             
@@ -268,10 +266,8 @@ export function ReviewStep({ transactions, filename, onComplete, onBack }: Revie
                                 <td className="px-4 py-2 text-sm text-gray-900">
                                     {transaction.description}
                                 </td>
-                                <td className={`px-4 py-2 text-sm text-right whitespace-nowrap ${
-                                        transaction.isIncome ? 'text-green-600' : 'text-red-600'
-                                    }`}>
-                                    {transaction.isIncome ? '+' : '-'}${Math.abs(transaction.amount).toFixed(2)}
+                                <td className={`px-4 py-2 text-sm text-right whitespace-nowrap ${transaction.isIncome ? 'text-green-600' : 'text-red-600'}`}>
+                                    {transaction.isIncome ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount)).replace('$', '')}
                                 </td>
                                 <td className="px-4 py-2 text-sm text-gray-500 whitespace-nowrap">
                                     {transaction.isIncome ? 'Income' : 'Expense'}
@@ -306,21 +302,19 @@ export function ReviewStep({ transactions, filename, onComplete, onBack }: Revie
                     disabled={importing}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                 >
+
                     {importing ? (
-                        <>
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path 
-                                    className="opacity-75" 
-                                    fill="currentColor" 
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                            </svg>
-                            Importing...
-                        </>
+                    <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Importing...
+                    </>
                     ) : (
-                        'Import Transactions'
+                    'Import Transactions'
                     )}
+
                 </button>
             </div>
         </div>
