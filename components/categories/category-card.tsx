@@ -5,6 +5,7 @@ import { archiveCategory, unarchiveCategory, deleteCategory } from '@/app/action
 import { EditCategoryModal } from './edit-category-modal';
 import { DeleteConfirmDialog } from '../transactions/delete-confirm-dialog';
 import type { Category } from '@/types/transactions';
+import { formatCurrency } from '@/lib/format';
 
 interface CategoryWithStats extends Category {
     totalSpent: number
@@ -158,7 +159,7 @@ export function CategoryCard({ category, onRefresh, onMerge }: CategoryCardProps
                     <div className="flex justify-between items-baseline">
                         <span className="text-sm text-gray-500">Total spent</span>
                         <span className="text-2xl font-semibold text-gray-900">
-                            ${category.totalSpent.toFixed(2)}
+                            ${formatCurrency(category.totalSpent)}
                         </span>
                     </div>
                     <div className="flex justify-between items-baseline">

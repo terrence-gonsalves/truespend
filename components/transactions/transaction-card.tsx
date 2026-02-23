@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { updateTransaction, deleteTransaction } from '@/app/actions/transaction';
 import { DeleteConfirmDialog } from './delete-confirm-dialog';
+import { formatCurrency } from '@/lib/format';
 import type { Transaction, Category, Account } from '@/types/transactions';
 
 interface TransactionCardProps {
@@ -22,20 +23,20 @@ export function TransactionCard({
     onSelect,
     onRefresh
 }: TransactionCardProps) {
-    const [editing, setEditing] = useState(false)
-    const [saving, setSaving] = useState(false)
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-    const [deleting, setDeleting] = useState(false)
+    const [editing, setEditing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
-  const [editData, setEditData] = useState({
+    const [editData, setEditData] = useState({
         date: transaction.date,
         description: transaction.description,
         amount: transaction.amount.toString(),
         category_id: transaction.category_id || '',
         account_id: transaction.account_id || ''
-  });
+    });
 
-  const handleSave = async () => {
+    const handleSave = async () => {
         setSaving(true);
 
         try {
@@ -54,7 +55,7 @@ export function TransactionCard({
         } finally {
             setSaving(false);
         }
-  };
+    };
 
     const handleCancel = () => {
         setEditData({
@@ -148,7 +149,7 @@ export function TransactionCard({
                                 {acc.name}
                             </option>
                             ))}
-                            
+
                         </select>
                     </div>
 
@@ -184,75 +185,75 @@ export function TransactionCard({
         );
     }
 
-    return (
-        <>
-            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-                <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 flex-1">
-                        <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={(e) => onSelect(e.target.checked)}
-                            className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                                {transaction.description}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                                {new Date(transaction.date).toLocaleDateString()}
-                            </p>
-                        </div>
-                    </div>
-                    <p className={`text-lg font-semibold ${transaction.is_income ? 'text-green-600' : 'text-red-600'}`}>
-                        {transaction.is_income ? '+' : '-'}${Math.abs(transaction.amount).toFixed(2)}
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-2 text-xs">
-
-                    {transaction.category && (
-                    <span
-                        className="inline-flex items-center px-2 py-1 rounded-full font-medium"
-                        style={{
-                            backgroundColor: transaction.category.color ? `${transaction.category.color}20` : '#e5e7eb',
-                            color: transaction.category.color || '#374151'
-                        }}
-                    >
-                        {transaction.category.name}
-                    </span>
-                    )}
-
-                    {transaction.account && (
-                    <span className="text-gray-500">
-                        {transaction.account.name}
-                    </span>
-                    )}
-                </div>
-
-                <div className="flex gap-2 pt-2 border-t border-gray-200">
-                    <button
-                        onClick={() => setEditing(true)}
-                        className="flex-1 text-sm text-blue-600 hover:text-blue-900 font-medium"
-                    >
-                        Edit
-                    </button>
-                    <button
-                        onClick={() => setShowDeleteDialog(true)}
-                        className="flex-1 text-sm text-red-600 hover:text-red-900 font-medium"
-                    >
-                        Delete
-                    </button>
-                </div>
-            </div>
-
-            <DeleteConfirmDialog
-                isOpen={showDeleteDialog}
-                count={1}
-                onConfirm={handleDelete}
-                onCancel={() => setShowDeleteDialog(false)}
-                loading={deleting}
+  return (
+    <>
+      <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3 flex-1">
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={(e) => onSelect(e.target.checked)}
+              className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-        </>
-    );
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {transaction.description}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {new Date(transaction.date).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+          <p className={`text-lg font-semibold ${
+            transaction.is_income ? 'text-green-600' : 'text-red-600'
+          }`}>
+            {transaction.is_income ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount)).replace('$', '')}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs">
+          {transaction.category && (
+            <span
+              className="inline-flex items-center px-2 py-1 rounded-full font-medium"
+              style={{
+                backgroundColor: transaction.category.color ? `${transaction.category.color}20` : '#e5e7eb',
+                color: transaction.category.color || '#374151'
+              }}
+            >
+              {transaction.category.name}
+            </span>
+          )}
+          {transaction.account && (
+            <span className="text-gray-500">
+              {transaction.account.name}
+            </span>
+          )}
+        </div>
+
+        <div className="flex gap-2 pt-2 border-t border-gray-200">
+          <button
+            onClick={() => setEditing(true)}
+            className="flex-1 text-sm text-blue-600 hover:text-blue-900 font-medium"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => setShowDeleteDialog(true)}
+            className="flex-1 text-sm text-red-600 hover:text-red-900 font-medium"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <DeleteConfirmDialog
+        isOpen={showDeleteDialog}
+        count={1}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteDialog(false)}
+        loading={deleting}
+      />
+    </>
+  )
 }
