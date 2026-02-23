@@ -6,7 +6,9 @@ import Link from 'next/link';
 export default async function DashboardPage() {
     const supabase = await createClient();
 
-    const { data: { user }, } = await supabase.auth.getUser();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
         redirect('/login');
@@ -18,7 +20,6 @@ export default async function DashboardPage() {
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between items-center">
                         <h1 className="text-xl font-bold text-gray-900">TrueSpend</h1>
-
                         <LogoutButton />
                     </div>
                 </div>
@@ -37,7 +38,6 @@ export default async function DashboardPage() {
                             <p className="mt-2 text-sm text-gray-500">
                                 Upload your bank CSV to get started
                             </p>
-
                             <div className="mt-4">
                                 <span className="text-blue-600 text-sm font-medium">
                                     Get started →
@@ -52,25 +52,38 @@ export default async function DashboardPage() {
                             <p className="mt-2 text-sm text-gray-500">
                                 Manage and categorize your spending
                             </p>
-
                             <div className="mt-4">
                                 <span className="text-blue-600 text-sm font-medium">
-                                    View transactions →
+                                    View all →
                                 </span>
                             </div>
                         </div>
                     </Link>
 
-                    <div className="bg-white overflow-hidden shadow rounded-lg">
-                        <div className="p-5">
-                            <h3 className="text-lg font-medium text-gray-900">Set Budgets</h3>
-                            <p className="mt-2 text-sm text-gray-500">
-                                Create monthly spending limits
-                            </p>
+                <Link href="/categories" className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
+                    <div className="p-5">
+                        <h3 className="text-lg font-medium text-gray-900">Manage Categories</h3>
+                        <p className="mt-2 text-sm text-gray-500">
+                            Organize transactions with custom categories
+                        </p>
+                        <div className="mt-4">
+                            <span className="text-blue-600 text-sm font-medium">
+                                Manage →
+                            </span>
                         </div>
                     </div>
+                </Link>
+
+                <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="p-5">
+                        <h3 className="text-lg font-medium text-gray-900">Set Budgets</h3>
+                        <p className="mt-2 text-sm text-gray-500">
+                            Create monthly spending limits
+                        </p>
+                    </div>
+                </div>
                 </div>
             </main>
         </div>
     );
-}
+};

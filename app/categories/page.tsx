@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { CategoriesList } from '@/components/categories/categories-list';
 
 export default function CategoriesPage() {
@@ -12,6 +13,12 @@ export default function CategoriesPage() {
                 </div>
                 
                 <CategoriesList />
+
+                <div className="mt-6">
+                    <Link href="/dashboard" className="text-sm text-blue-600 hover:text-blue-700">
+                        Back to Dashboard
+                    </Link>
+                </div>
             </div>
         </div>
     );
