@@ -10,8 +10,8 @@ interface CategoryCardProps {
         id: string
         name: string
         color: string | null
-        is_system: boolean | null
-        archived: boolean | null
+        is_system: boolean | undefined
+        archived: boolean | undefined
         totalSpent: number
         transactionCount: number
     }
