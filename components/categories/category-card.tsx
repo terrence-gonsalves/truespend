@@ -4,17 +4,15 @@ import { useState } from 'react';
 import { archiveCategory, unarchiveCategory, deleteCategory } from '@/app/actions/categories';
 import { EditCategoryModal } from './edit-category-modal';
 import { DeleteConfirmDialog } from '../transactions/delete-confirm-dialog';
+import type { Category } from '@/types/transactions';
+
+interface CategoryWithStats extends Category {
+    totalSpent: number
+    transactionCount: number
+};
 
 interface CategoryCardProps {
-    category: {
-        id: string
-        name: string
-        color: string | null
-        is_system: boolean | undefined
-        archived: boolean | undefined
-        totalSpent: number
-        transactionCount: number
-    }
+    category: CategoryWithStats
     onRefresh: () => void
     onMerge: (categoryId: string) => void
 };
@@ -42,7 +40,7 @@ export function CategoryCard({ category, onRefresh, onMerge }: CategoryCardProps
         } finally {
             setProcessing(false);
         }
-    };
+    }
 
     const handleDelete = async () => {
         setProcessing(true);
@@ -76,7 +74,7 @@ export function CategoryCard({ category, onRefresh, onMerge }: CategoryCardProps
                             <h3 className="text-lg font-medium text-gray-900 truncate">
                                 {category.name}
                             </h3>
-
+                            
                             {category.is_system && (
                             <span className="text-xs text-gray-500">System category</span>
                             )}
@@ -87,7 +85,6 @@ export function CategoryCard({ category, onRefresh, onMerge }: CategoryCardProps
 
                         </div>
                     </div>
-                    
                     <div className="relative">
                         <button
                             onClick={() => setShowMenu(!showMenu)}
@@ -156,7 +153,7 @@ export function CategoryCard({ category, onRefresh, onMerge }: CategoryCardProps
 
                     </div>
                 </div>
-                
+            
                 <div className="space-y-2">
                     <div className="flex justify-between items-baseline">
                         <span className="text-sm text-gray-500">Total spent</span>
@@ -172,7 +169,7 @@ export function CategoryCard({ category, onRefresh, onMerge }: CategoryCardProps
                     </div>
                 </div>
             </div>
-            
+        
             <EditCategoryModal
                 isOpen={showEditModal}
                 category={category}

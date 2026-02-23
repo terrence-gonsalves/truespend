@@ -15,7 +15,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess }: CreateCatego
     const [color, setColor] = useState(CATEGORY_COLORS[0].value);
     const [saving, setSaving] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
         
         if (!name.trim()) {
