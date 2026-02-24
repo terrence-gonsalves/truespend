@@ -65,27 +65,30 @@ export type Database = {
       }
       budgets: {
         Row: {
+          amount: number
           category_id: string | null
           created_at: string | null
           id: string
-          limit_amount: number
           month: string
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
+          amount: number
           category_id?: string | null
           created_at?: string | null
           id?: string
-          limit_amount: number
           month: string
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
+          amount?: number
           category_id?: string | null
           created_at?: string | null
           id?: string
-          limit_amount?: number
           month?: string
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
