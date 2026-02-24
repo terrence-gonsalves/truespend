@@ -65,7 +65,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                     }`}
                 >
                     <div className="p-4 flex items-start">
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
 
                             {toast.type === 'success' && (
                             <svg className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
@@ -105,7 +105,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                                 {toast.message}
                             </p>
                         </div>
-                        <div className="ml-4 flex-shrink-0">
+                        <div className="ml-4 shrink-0">
                             <button
                                 onClick={() => removeToast(toast.id)}
                                 className={`inline-flex rounded-md ${
@@ -130,7 +130,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                     </div>
                 </div>
                 ))}
-                
+
             </div>
         </ToastContext.Provider>
     );
