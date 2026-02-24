@@ -60,28 +60,33 @@ export default async function DashboardPage() {
                         </div>
                     </Link>
 
-                <Link href="/categories" className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
-                    <div className="p-5">
-                        <h3 className="text-lg font-medium text-gray-900">Manage Categories</h3>
-                        <p className="mt-2 text-sm text-gray-500">
-                            Organize transactions with custom categories
-                        </p>
-                        <div className="mt-4">
-                            <span className="text-blue-600 text-sm font-medium">
-                                Manage →
-                            </span>
+                    <Link href="/categories" className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
+                        <div className="p-5">
+                            <h3 className="text-lg font-medium text-gray-900">Manage Categories</h3>
+                            <p className="mt-2 text-sm text-gray-500">
+                                Organize transactions with custom categories
+                            </p>
+                            <div className="mt-4">
+                                <span className="text-blue-600 text-sm font-medium">
+                                    Manage →
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                </Link>
+                    </Link>
 
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                    <div className="p-5">
-                        <h3 className="text-lg font-medium text-gray-900">Set Budgets</h3>
-                        <p className="mt-2 text-sm text-gray-500">
-                            Create monthly spending limits
-                        </p>
-                    </div>
-                </div>
+                    <Link href="/budgets" className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
+                        <div className="p-5">
+                            <h3 className="text-lg font-medium text-gray-900">Set Budgets</h3>
+                            <p className="mt-2 text-sm text-gray-500">
+                                Create monthly spending limits
+                            </p>
+                            <div className="mt-4">
+                                <span className="text-blue-600 text-sm font-medium">
+                                    Manage →
+                                </span>
+                            </div>
+                        </div>
+                    </Link>
                 </div>
             </main>
         </div>
