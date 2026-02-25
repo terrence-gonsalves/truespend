@@ -66,11 +66,12 @@ export function Navigation() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                             )}
+                            
                         </button>
                     </div>
                 </div>
             </div>
-
+            
             {mobileMenuOpen && (
             <div className="md:hidden">
                 <div className="space-y-1 pb-3 pt-2">
@@ -98,7 +99,6 @@ export function Navigation() {
                 </div>
             </div>
             )}
-
         </nav>
     );
 }

@@ -37,7 +37,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         
         // auto dismiss after 5 seconds
         setTimeout(() => {
-            setToasts((prev) => prev.filter((t) => t.id !== id));
+            setToasts((prev) => prev.filter((t) => t.id !== id))
         }, 5000);
     }, []);
 
@@ -95,13 +95,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                         <div className="ml-3 flex-1">
                             <p className={`text-sm font-medium ${
                                 toast.type === 'success'
-                                ? 'text-green-800'
-                                : toast.type === 'error'
-                                ? 'text-red-800'
-                                : toast.type === 'warning'
-                                ? 'text-amber-800'
-                                : 'text-blue-800'
-                            }`}>
+                                    ? 'text-green-800'
+                                    : toast.type === 'error'
+                                    ? 'text-red-800'
+                                    : toast.type === 'warning'
+                                    ? 'text-amber-800'
+                                    : 'text-blue-800'
+                                }`}
+                            >
                                 {toast.message}
                             </p>
                         </div>
@@ -122,8 +123,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                                     <path 
                                         fillRule="evenodd" 
                                         d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" 
-                                        clipRule="evenodd" 
-                                    />
+                                        clipRule="evenodd" />
                                 </svg>
                             </button>
                         </div>
