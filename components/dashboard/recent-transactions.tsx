@@ -31,7 +31,7 @@ export function RecentTransactions({ transactions, onRefresh }: RecentTransactio
         } finally {
             setDeleting(false);
         }
-    };
+    }
 
     if (transactions.length === 0) {
         return (
@@ -51,7 +51,6 @@ export function RecentTransactions({ transactions, onRefresh }: RecentTransactio
                         />
                     </svg>
                     <p className="mt-2 text-sm text-gray-500">No transactions yet</p>
-
                     <Link href="/import" className="mt-4 inline-block text-sm text-blue-600 hover:text-blue-700">
                         Import transactions →
                     </Link>

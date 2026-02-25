@@ -29,8 +29,8 @@ interface DashboardData {
     recentTransactions: Transaction[]
     budgetAlerts: Array<{
         category: {
-        name: string
-        color: string | null
+            name: string
+            color: string | null
         } | null
         budgetAmount: number
         spent: number
@@ -43,7 +43,7 @@ export function DashboardContent() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        loadData()
+        loadData();
     }, []);
 
     const loadData = async () => {
@@ -123,7 +123,7 @@ export function DashboardContent() {
                                     <dt className="text-sm font-medium text-gray-500 truncate">Expenses</dt>
                                     <dd className="text-2xl font-semibold text-red-600">
                                         {formatCurrency(data.summary.expenses)}
-                                    </dd>   
+                                    </dd>
                                 </dl>
                             </div>
                         </div>

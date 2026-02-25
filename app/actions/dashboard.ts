@@ -40,7 +40,7 @@ export async function getDashboardData() {
         .select(`
             *,
             category:categories(id, name, color),
-            account:accounts(id, name)
+            account:accounts(id, name, institution)
         `)
         .eq('user_id', user.id)
         .order('date', { ascending: false })
@@ -65,13 +65,13 @@ export async function getDashboardData() {
     
     monthTransactions?.forEach(t => {
         if (t.is_income) return;
-    
+        
         // handle category data which may be null or have null fields
         const categoryData = t.categories as { name: string; color: string | null } | null;
         const categoryName = categoryData?.name ?? 'Uncategorized';
         const categoryColor = categoryData?.color ?? '#6B7280';
         
-        const current = categorySpending.get(categoryName) || { name: categoryName, color: categoryColor, amount: 0 }
+        const current = categorySpending.get(categoryName) || { name: categoryName, color: categoryColor, amount: 0 };
 
         current.amount += Math.abs(t.amount);
         categorySpending.set(categoryName, current);
@@ -105,28 +105,28 @@ export async function getDashboardData() {
     // calculate budget alerts
     const budgetAlerts = await Promise.all(
         (budgets || [])
-        .filter(budget => budget.category_id !== null)
-        .map(async (budget) => {
-            const { data: transactions } = await supabase
-            .from('transactions')
-            .select('amount, is_income')
-            .eq('user_id', user.id)
-            .eq('category_id', budget.category_id!)
-            .gte('date', monthStart)
-            .lte('date', monthEnd);
+            .filter(budget => budget.category_id !== null)
+            .map(async (budget) => {
+                const { data: transactions } = await supabase
+                    .from('transactions')
+                    .select('amount, is_income')
+                    .eq('user_id', user.id)
+                    .eq('category_id', budget.category_id!)
+                    .gte('date', monthStart)
+                    .lte('date', monthEnd);
 
-            const spent = transactions?.reduce((sum, t) => 
-            !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
-            
-            const percentage = (spent / budget.amount) * 100;
+                const spent = transactions?.reduce((sum, t) => 
+                    !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
+                
+                const percentage = (spent / budget.amount) * 100;
 
-            return {
-                category: budget.category,
-                budgetAmount: budget.amount,
-                spent,
-                percentage
-            };
-        })
+                return {
+                    category: budget.category,
+                    budgetAmount: budget.amount,
+                    spent,
+                    percentage
+                };
+            })
     );
 
     // get top 5 spending categories and any over 80%
@@ -142,9 +142,9 @@ export async function getDashboardData() {
 
     return {
         summary: {
-        income,
-        expenses,
-        net: income - expenses
+            income,
+            expenses,
+            net: income - expenses
         },
         spendingByCategory,
         spendingTrend,
