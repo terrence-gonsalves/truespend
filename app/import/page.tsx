@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { ImportWizard } from '@/components/import/import-wizrd';
+import { ProtectedLayout } from '@/components/protected-layout';
 
 export default function ImportPage() {
     return (
-        <div className="min-h-screen bg-gray-50">
+        <ProtectedLayout>
             <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">Import Transactions</h1>
@@ -20,6 +21,6 @@ export default function ImportPage() {
                     </Link>
                 </div>
             </div>
-        </div>
+        </ProtectedLayout>
     )
 }
