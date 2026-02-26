@@ -25,11 +25,11 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
             trendStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             break;
         case 'month':
-            trendDays = now.getDate(); // Days in current month so far
+            trendDays = now.getDate(); // days in current month so far
             trendStartDate = monthStart;
             break;
-        case '30days':
-            trendDays = 30;
+        case '30days':;
+            trendDays = 30
             trendStartDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             break;
         case '7days':
@@ -75,13 +75,27 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         .eq('user_id', user.id)
         .eq('month', currentMonth);
 
+    // get all categories and accounts for editing
+    const { data: categories } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('archived', false)
+        .order('name');
+
+    const { data: accounts } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name');
+
     // calculate summary stats
     const income = monthTransactions?.reduce((sum, t) => 
         t.is_income ? sum + t.amount : sum, 0) || 0;
     const expenses = monthTransactions?.reduce((sum, t) => 
         !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
 
-    // Calculate spending by category
+    // calculate spending by category
     const categorySpending = new Map<string, { name: string; color: string; amount: number }>();
     
     monthTransactions?.forEach(t => {
@@ -95,7 +109,7 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
 
         current.amount += Math.abs(t.amount);
         categorySpending.set(categoryName, current);
-    })
+    });
 
     const spendingByCategory = Array.from(categorySpending.values())
         .sort((a, b) => b.amount - a.amount);
@@ -130,15 +144,15 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         .filter(budget => budget.category_id !== null)
         .map(async (budget) => {
             const { data: transactions } = await supabase
-                .from('transactions')
-                .select('amount, is_income')
-                .eq('user_id', user.id)
-                .eq('category_id', budget.category_id!)
-                .gte('date', monthStart)
-                .lte('date', monthEnd)
+            .from('transactions')
+            .select('amount, is_income')
+            .eq('user_id', user.id)
+            .eq('category_id', budget.category_id!)
+            .gte('date', monthStart)
+            .lte('date', monthEnd);
 
-            const spent = transactions?.reduce((sum, t) => 
-                !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
+        const spent = transactions?.reduce((sum, t) => 
+            !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
             
             const percentage = (spent / budget.amount) * 100;
 
@@ -155,7 +169,7 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
     const top5 = budgetAlerts
         .sort((a, b) => b.spent - a.spent)
         .slice(0, 5);
-  
+    
     const over80 = budgetAlerts.filter(b => b.percentage >= 80 && !top5.includes(b));
     
     const featuredBudgets = [...over80, ...top5]
@@ -171,6 +185,8 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         spendingByCategory,
         spendingTrend,
         recentTransactions: recentTransactions || [],
-        budgetAlerts: featuredBudgets
+        budgetAlerts: featuredBudgets,
+        categories: categories || [],
+        accounts: accounts || []
     };
 }
