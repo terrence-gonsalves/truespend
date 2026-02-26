@@ -8,9 +8,25 @@ interface SpendingTrendChartProps {
         date: string
         amount: number
     }>
+    period: '7days' | '14days' | 'month' | '30days'
 };
 
-export function SpendingTrendChart({ data }: SpendingTrendChartProps) {
+export function SpendingTrendChart({ data, period }: SpendingTrendChartProps) {
+    const getPeriodLabel = () => {
+        switch (period) {
+            case '7days':
+                return 'Last 7 Days';
+            case '14days':
+                return 'Last 14 Days';
+            case 'month':
+                return 'Current Month';
+            case '30days':
+                return 'Last 30 Days';
+            default:
+                return 'Spending Trend';
+        }
+    };
+
     const chartData = data.map(item => ({
         date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         amount: item.amount
@@ -18,8 +34,7 @@ export function SpendingTrendChart({ data }: SpendingTrendChartProps) {
 
     return (
         <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Spending Trend (Last 7 Days)</h3>
-
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Spending Trend ({getPeriodLabel()})</h3>
             <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -46,7 +61,6 @@ export function SpendingTrendChart({ data }: SpendingTrendChartProps) {
                         activeDot={{ r: 6 }}
                     />
                 </LineChart>
-
             </ResponsiveContainer>
         </div>
     );
