@@ -8,8 +8,7 @@ import { RecentTransactions } from './recent-transactions';
 import { BudgetAlerts } from './budget-alerts';
 import { formatCurrency } from '@/lib/format';
 import Link from 'next/link';
-
-import type { Transaction } from '@/types/transactions';
+import type { Transaction, Category, Account } from '@/types/transactions';
 
 interface DashboardData {
     summary: {
@@ -29,19 +28,22 @@ interface DashboardData {
     recentTransactions: Transaction[]
     budgetAlerts: Array<{
         category: {
-            name: string
-            color: string | null
+        name: string
+        color: string | null
         } | null
         budgetAmount: number
         spent: number
         percentage: number
     }>
+    categories: Category[]
+    accounts: Account[]
 };
 
 export function DashboardContent() {
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
     const [trendPeriod, setTrendPeriod] = useState<'7days' | '14days' | 'month' | '30days'>('7days');
+    const [trendLoading, setTrendLoading] = useState(false);
 
     const loadData = useCallback(async () => {
         setLoading(true);
@@ -56,9 +58,37 @@ export function DashboardContent() {
         }
     }, [trendPeriod]);
 
+    const loadTrendOnly = useCallback(async () => {
+        if (!data) return;
+        
+        setTrendLoading(true);
+
+        try {
+            const dashboardData = await getDashboardData(trendPeriod);
+
+            // only update trend data, keep everything else
+            setData(prev => prev ? {
+                ...prev,
+                spendingTrend: dashboardData.spendingTrend
+            } : dashboardData);
+        } catch (error) {
+            console.error('Failed to load trend:', error);
+        } finally {
+            setTrendLoading(false);
+        }
+    }, [trendPeriod, data]);
+
     useEffect(() => {
         loadData();
     }, [loadData]);
+
+    useEffect(() => {
+
+        // on period change, only reload trend if data already exists
+        if (data) {
+            loadTrendOnly();
+        }
+    }, [trendPeriod]);
 
     if (loading) {
         return (
@@ -184,8 +214,12 @@ export function DashboardContent() {
                             View all →
                         </Link>
                     </div>
-
-                    <RecentTransactions transactions={data.recentTransactions} onRefresh={loadData} />
+                    <RecentTransactions 
+                        transactions={data.recentTransactions} 
+                        categories={data.categories}
+                        accounts={data.accounts}
+                        onRefresh={loadData} 
+                    />
                 </div>
 
                 <div>
