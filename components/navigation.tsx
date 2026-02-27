@@ -15,6 +15,7 @@ export function Navigation() {
         { name: 'Categories', href: '/categories' },
         { name: 'Budgets', href: '/budgets' },
         { name: 'Import', href: '/import' },
+        { name: 'Household', href: '/household' },
         { name: 'Help', href: '/help' },
     ];
 
@@ -66,7 +67,7 @@ export function Navigation() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                             )}
-                            
+
                         </button>
                     </div>
                 </div>
@@ -99,6 +100,7 @@ export function Navigation() {
                 </div>
             </div>
             )}
+
         </nav>
     );
 }
