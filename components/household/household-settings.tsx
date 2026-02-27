@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
     getUserHousehold, 
     getHouseholdMembers, 
     updateHouseholdName, 
     regenerateInviteCode, 
     joinHouseholdByCode, 
-    leaveHousehold
+    leaveHousehold 
 } from '@/app/actions/household';
 import { useToast } from '@/components/ui/toast';
 
@@ -20,7 +20,7 @@ interface Household {
 
 export function HouseholdSettings() {
     const [household, setHousehold] = useState<Household | null>(null);
-    const [members, setMembers] = useState<Array<{ user_id: string; joined_at: string }>>([]);
+    const [members, setMembers] = useState<Array<{ user_id: string; joined_at: string | null }>>([]);
     const [loading, setLoading] = useState(true);
     const [editingName, setEditingName] = useState(false);
     const [householdName, setHouseholdName] = useState('');
@@ -30,16 +30,11 @@ export function HouseholdSettings() {
     const [showJoin, setShowJoin] = useState(false);
     const { showToast } = useToast();
 
-    useEffect(() => {
-        loadHousehold();
-    }, []);
-
-    const loadHousehold = async () => {
+    const loadHousehold = useCallback(async () => {
         setLoading(true);
 
         try {
             const householdData = await getUserHousehold();
-
             setHousehold(householdData);
             setHouseholdName(householdData.name);
             setInviteCode(householdData.invite_code || '');
@@ -54,7 +49,11 @@ export function HouseholdSettings() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [showToast]);
+
+    useEffect(() => {
+        loadHousehold();
+    }, [loadHousehold])
 
     const handleSaveName = async () => {
         if (!household) return;
@@ -62,11 +61,11 @@ export function HouseholdSettings() {
         try {
             await updateHouseholdName(household.id, householdName);
 
-            setHousehold({ ...household, name: householdName });
-            setEditingName(false);
-            showToast('Household name updated', 'success');
+            setHousehold({ ...household, name: householdName })
+            setEditingName(false)
+            showToast('Household name updated', 'success')
         } catch (error) {
-            console.error('Failed to update name:', error);
+            console.error('Failed to update name:', error)
             showToast('Failed to update household name', 'error');
         }
     };
@@ -115,11 +114,11 @@ export function HouseholdSettings() {
             'Are you sure you want to leave this household? A new household will be created for you.'
         );
 
-        if (!confirmed) return
+        if (!confirmed) return;
 
         try {
             await leaveHousehold(household.id);
-
+            
             showToast('Left household successfully', 'success');
             loadHousehold();
         } catch (error: unknown) {
@@ -128,7 +127,7 @@ export function HouseholdSettings() {
 
             showToast(message, 'error');
         }
-    }
+    };
 
     const copyInviteCode = () => {
         navigator.clipboard.writeText(inviteCode);
@@ -213,7 +212,7 @@ export function HouseholdSettings() {
 
                             </p>
                             <p className="text-xs text-gray-500">
-                                Joined {new Date(member.joined_at).toLocaleDateString()}
+                                Joined {member.joined_at ? new Date(member.joined_at).toLocaleDateString() : 'Unknown'}
                             </p>
                         </div>
                     </div>
@@ -241,7 +240,6 @@ export function HouseholdSettings() {
                                 <p className="text-sm font-medium text-blue-900">Invite Code</p>
                                 <p className="text-2xl font-bold text-blue-600 mt-1 font-mono">{inviteCode}</p>
                             </div>
-
                             <button
                                 onClick={copyInviteCode}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -274,6 +272,7 @@ export function HouseholdSettings() {
                     Show Invite Code
                 </button>
                 )}
+
             </div>
             
             <div className="bg-white rounded-lg shadow p-6">
@@ -302,8 +301,8 @@ export function HouseholdSettings() {
                         </button>
                         <button
                             onClick={() => {
-                                setShowJoin(false)
-                                setJoiningCode('')
+                            setShowJoin(false)
+                            setJoiningCode('')
                             }}
                             className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
                         >
@@ -325,6 +324,7 @@ export function HouseholdSettings() {
                     Join Household
                 </button>
                 )}
+
             </div>
             
             {household.created_by !== members.find(m => m.user_id)?.user_id && (
