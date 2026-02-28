@@ -53,7 +53,7 @@ export function HouseholdSettings() {
 
     useEffect(() => {
         loadHousehold();
-    }, [loadHousehold])
+    }, [loadHousehold]);
 
     const handleSaveName = async () => {
         if (!household) return;
@@ -61,11 +61,11 @@ export function HouseholdSettings() {
         try {
             await updateHouseholdName(household.id, householdName);
 
-            setHousehold({ ...household, name: householdName })
-            setEditingName(false)
-            showToast('Household name updated', 'success')
+            setHousehold({ ...household, name: householdName });
+            setEditingName(false);
+            showToast('Household name updated', 'success');
         } catch (error) {
-            console.error('Failed to update name:', error)
+            console.error('Failed to update name:', error);
             showToast('Failed to update household name', 'error');
         }
     };
