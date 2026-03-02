@@ -1,8 +1,21 @@
 import Link from 'next/link';
 import { BudgetsList } from '@/components/budgets/budgets-list';
 import { ProtectedLayout } from '@/components/protected-layout';
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
+import { ensureUserHousehold } from '@/app/actions/ensure-household';
 
-export default function BudgetsPage() {
+export default async function BudgetsPage() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+  
+    if (!user) {
+        redirect('/login')
+    }
+    
+    // ensure household exists (creates if needed)
+    await ensureUserHousehold();
+
     return (
         <ProtectedLayout>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
