@@ -12,8 +12,13 @@ export default async function DashboardPage() {
         redirect('/login');
     }
 
-    // ensure household exists (creates if needed)
-    await ensureUserHousehold();
+    try {
+
+        // ensure household exists (create if needed)
+        await ensureUserHousehold();
+    } catch (error) {
+        console.error('Error ensuring household:', error);
+    }
 
     return (
         <ProtectedLayout>
