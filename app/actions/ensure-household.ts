@@ -67,7 +67,7 @@ export async function ensureUserHousehold() {
 
     const inviteCode = inviteCodeData as string;
 
-    // Create household
+    // create household
     const { data: newHousehold, error: createError } = await supabase
         .from('households')
         .insert({
@@ -83,7 +83,7 @@ export async function ensureUserHousehold() {
         throw createError || new Error('Failed to create household');
     }
 
-    // Add user as member
+    // add user as member
     const { error: memberError } = await supabase
         .from('household_members')
         .insert({
