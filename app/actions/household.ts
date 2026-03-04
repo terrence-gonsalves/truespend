@@ -11,7 +11,7 @@ export async function getUserHousehold() {
         throw new Error('Unauthorized');
     }
 
-    // Get user's household
+    // get user's household
     const { data: membership } = await supabase
         .from('household_members')
         .select('household_id, households(id, name, invite_code, created_by)')
@@ -126,30 +126,61 @@ export async function joinHouseholdByCode(inviteCode: string) {
         throw new Error('Invalid invite code');
     }
 
-    // check if user is already a member (using service client)
+    // check if user is already a member of THIS household
     const { data: existingMembership } = await serviceSupabase
         .from('household_members')
         .select('id')
         .eq('household_id', household.id)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
     if (existingMembership) {
         throw new Error('You are already a member of this household');
     }
 
-    // check if user is already in another household (using service client)
+    // check if user is in another household
     const { data: currentMembership } = await serviceSupabase
         .from('household_members')
-        .select('id')
+        .select('household_id, households!inner(id, created_by)')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
     if (currentMembership) {
-        throw new Error('You are already in a household. Leave your current household first.');
+
+        // get the current household details
+        const currentHouseholdId = currentMembership.household_id;
+        const currentHousehold = currentMembership.households as { id: string; created_by: string | null };
+        
+        // check if user is the only member and the creator (solo household)
+        const { data: memberCount } = await serviceSupabase
+            .from('household_members')
+            .select('id', { count: 'exact', head: true })
+            .eq('household_id', currentHouseholdId);
+
+        const isOnlyMember = (memberCount as unknown as { count: number })?.count === 1;
+        const isCreator = currentHousehold.created_by === user.id;
+
+        if (isOnlyMember && isCreator) {
+
+            // automatically leave and delete the solo household
+            await serviceSupabase
+                .from('household_members')
+                .delete()
+                .eq('household_id', currentHouseholdId)
+                .eq('user_id', user.id);
+
+            await serviceSupabase
+                .from('households')
+                .delete()
+                .eq('id', currentHouseholdId);
+        } else {
+
+            // user is in a household with others - require manual leave
+            throw new Error('You are already in a household with other members. Please leave that household first.');
+        }   
     }
 
-    // add user to household (using service client to bypass RLS)
+    // add user to new household
     const { error: insertError } = await serviceSupabase
         .from('household_members')
         .insert({
@@ -170,34 +201,34 @@ async function migrateUserDataToHousehold(userId: string, householdId: string) {
 
     // update all user's data to belong to the household (using service client)
     await serviceSupabase
-      .from('transactions')
-      .update({ household_id: householdId })
-      .eq('user_id', userId);
+        .from('transactions')
+        .update({ household_id: householdId })
+        .eq('user_id', userId);
 
     await serviceSupabase
-      .from('categories')
-      .update({ household_id: householdId })
-      .eq('user_id', userId);
+        .from('categories')
+        .update({ household_id: householdId })
+        .eq('user_id', userId);
 
     await serviceSupabase
-      .from('budgets')
-      .update({ household_id: householdId })
-      .eq('user_id', userId);
+        .from('budgets')
+        .update({ household_id: householdId })
+        .eq('user_id', userId);
 
     await serviceSupabase
-      .from('accounts')
-      .update({ household_id: householdId })
-      .eq('user_id', userId);
+        .from('accounts')
+        .update({ household_id: householdId })
+        .eq('user_id', userId);
 
     await serviceSupabase
-      .from('import_batches')
-      .update({ household_id: householdId })
-      .eq('user_id', userId);
+        .from('import_batches')
+        .update({ household_id: householdId })
+        .eq('user_id', userId);
 
     await serviceSupabase
-      .from('column_mapping_presets')
-      .update({ household_id: householdId })
-      .eq('user_id', userId);
+        .from('column_mapping_presets')
+        .update({ household_id: householdId })
+        .eq('user_id', userId);
 }
 
 export async function leaveHousehold(householdId: string) {
@@ -208,7 +239,7 @@ export async function leaveHousehold(householdId: string) {
         throw new Error('Unauthorized');
     }
 
-    // check if user is the creator
+    // Check if user is the creator
     const { data: household } = await supabase
         .from('households')
         .select('created_by')
@@ -240,8 +271,8 @@ export async function leaveHousehold(householdId: string) {
 
     if (createError || !newHousehold) throw createError;
 
-    // Generate invite code
-    const { data: inviteCode } = await supabase.rpc('generate_invite_code')
+    // generate invite code
+    const { data: inviteCode } = await supabase.rpc('generate_invite_code');
   
     await supabase
         .from('households')
