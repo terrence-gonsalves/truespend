@@ -11,7 +11,7 @@ export async function ensureUserHousehold() {
         throw new Error('Unauthorized');
     }
 
-  console.log('ensureUserHousehold: User ID:', user.id);
+    console.log('ensureUserHousehold: User ID:', user.id);
 
     // check if user already has a household using regular client
     const { data: existingMembership, error: membershipError } = await supabase
