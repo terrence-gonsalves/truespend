@@ -152,15 +152,27 @@ export async function joinHouseholdByCode(inviteCode: string) {
         const currentHousehold = currentMembership.households as { id: string; created_by: string | null };
         
         // check if user is the only member and the creator (solo household)
-        const { data: memberCount } = await serviceSupabase
+        // get all members to count them
+        const { data: allMembers } = await serviceSupabase
             .from('household_members')
-            .select('id', { count: 'exact', head: true })
+            .select('user_id')
             .eq('household_id', currentHouseholdId);
 
-        const isOnlyMember = (memberCount as unknown as { count: number })?.count === 1;
+        const memberCount = allMembers?.length || 0;
+        const isOnlyMember = memberCount === 1;
         const isCreator = currentHousehold.created_by === user.id;
 
+        console.log('Current household check:', { 
+            currentHouseholdId, 
+            memberCount, 
+            isOnlyMember, 
+            isCreator,
+            createdBy: currentHousehold.created_by,
+            userId: user.id
+        });
+
         if (isOnlyMember && isCreator) {
+            console.log('Auto-deleting solo household...');
 
             // automatically leave and delete the solo household
             await serviceSupabase
@@ -173,11 +185,13 @@ export async function joinHouseholdByCode(inviteCode: string) {
                 .from('households')
                 .delete()
                 .eq('id', currentHouseholdId);
+            
+            console.log('Solo household deleted successfully');
         } else {
 
             // user is in a household with others - require manual leave
-            throw new Error('You are already in a household with other members. Please leave that household first.');
-        }   
+            throw new Error(`You are already in a household with other members (${memberCount} total). Please leave that household first.`);
+        }
     }
 
     // add user to new household
@@ -239,7 +253,7 @@ export async function leaveHousehold(householdId: string) {
         throw new Error('Unauthorized');
     }
 
-    // Check if user is the creator
+    // check if user is the creator
     const { data: household } = await supabase
         .from('households')
         .select('created_by')
