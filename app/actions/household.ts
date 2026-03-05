@@ -152,11 +152,13 @@ export async function joinHouseholdByCode(inviteCode: string) {
         const currentHousehold = currentMembership.households as { id: string; created_by: string | null };
         
         // check if user is the only member and the creator (solo household)
-        const { count: memberCount } = await serviceSupabase
+        // get all members to count them
+        const { data: allMembers } = await serviceSupabase
             .from('household_members')
-            .select('*', { count: 'exact', head: true })
+            .select('user_id')
             .eq('household_id', currentHouseholdId);
 
+        const memberCount = allMembers?.length || 0;
         const isOnlyMember = memberCount === 1;
         const isCreator = currentHousehold.created_by === user.id;
 
@@ -188,7 +190,7 @@ export async function joinHouseholdByCode(inviteCode: string) {
         } else {
 
             // user is in a household with others - require manual leave
-            throw new Error('You are already in a household with other members. Please leave that household first.');
+            throw new Error(`You are already in a household with other members (${memberCount} total). Please leave that household first.`);
         }
     }
 
