@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { getUserHousehold } from './household';
 import { revalidatePath } from 'next/cache';
 
 export interface TransactionFilters {
@@ -23,6 +24,9 @@ export async function getTransactions(
         throw new Error('Unauthorized');
     }
 
+    // get user's household
+    const household = await getUserHousehold();
+
     let query = supabase
         .from('transactions')
         .select(`
@@ -30,7 +34,7 @@ export async function getTransactions(
         category:categories(id, name, color),
         account:accounts(id, name, institution)
         `, { count: 'exact' })
-        .eq('user_id', user.id);
+        .eq('household_id', household.id); 
 
     // apply filters
     if (filters?.dateFrom) {
@@ -92,11 +96,14 @@ export async function updateTransaction(
         throw new Error('Unauthorized');
     }
 
+    // get user's household
+    const household = await getUserHousehold();
+
     const { data, error } = await supabase
         .from('transactions')
         .update(updates)
         .eq('id', id)
-        .eq('user_id', user.id)
+        .eq('household_id', household.id)
         .select()
         .single();
 
@@ -116,11 +123,14 @@ export async function deleteTransaction(id: string) {
         throw new Error('Unauthorized');
     }
 
+    // get user's household
+    const household = await getUserHousehold();
+
     const { error } = await supabase
         .from('transactions')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('household_id', household.id);
 
     if (error) throw error;
 
@@ -136,11 +146,14 @@ export async function bulkDeleteTransactions(ids: string[]) {
         throw new Error('Unauthorized');
     }
 
+    // get user's household
+    const household = await getUserHousehold();
+
     const { error } = await supabase
         .from('transactions')
         .delete()
         .in('id', ids)
-        .eq('user_id', user.id);
+        .eq('household_id', household.id);
 
     if (error) throw error;
 
@@ -156,11 +169,14 @@ export async function bulkUpdateCategory(ids: string[], categoryId: string | nul
         throw new Error('Unauthorized');
     }
 
+    // get user's household
+    const household = await getUserHousehold();
+
     const { error } = await supabase
         .from('transactions')
         .update({ category_id: categoryId })
         .in('id', ids)
-        .eq('user_id', user.id);
+        .eq('household_id', household.id);
 
     if (error) throw error;
 
@@ -176,11 +192,14 @@ export async function bulkUpdateAccount(ids: string[], accountId: string | null)
         throw new Error('Unauthorized');
     }
 
+    // get user's household
+    const household = await getUserHousehold();
+
     const { error } = await supabase
         .from('transactions')
         .update({ account_id: accountId })
         .in('id', ids)
-        .eq('user_id', user.id);
+        .eq('household_id', household.id);
 
     if (error) throw error;
 
