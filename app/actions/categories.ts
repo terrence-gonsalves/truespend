@@ -19,7 +19,7 @@ export async function getCategories() {
     const { data: categories, error } = await supabase
         .from('categories')
         .select('*')
-        .or(`household_id.is.null, household_id.eq.${household.id}`)
+        .or(`household_id.is.null,household_id.eq.${household.id}`)
         .eq('archived', false)
         .order('name');
 
@@ -46,7 +46,6 @@ export async function createCategory(name: string, color: string) {
             name,
             color,
             household_id: household.id, // custom category
-            user_id: user.id,
             archived: false
         })
         .select()
@@ -93,6 +92,27 @@ export async function archiveCategory(id: string) {
     const { error } = await supabase
         .from('categories')
         .update({ archived: true })
+        .eq('id', id)
+        .eq('household_id', household.id);
+
+    if (error) throw error;
+}
+
+export async function unarchiveCategory(id: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error('Unauthorized');
+    }
+
+    // get user's household
+    const household = await getUserHousehold();
+
+    // can only unarchive custom categories
+    const { error } = await supabase
+        .from('categories')
+        .update({ archived: false })
         .eq('id', id)
         .eq('household_id', household.id);
 
