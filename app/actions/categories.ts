@@ -1,9 +1,10 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+import { createServiceClient } from '@/lib/supabase/service';
+import { getUserHousehold } from './household';
 
-export async function getCategoriesWithStats(includeArchived: boolean = false) {
+export async function getCategories() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -11,47 +12,20 @@ export async function getCategoriesWithStats(includeArchived: boolean = false) {
         throw new Error('Unauthorized');
     }
 
-    // get categories
-    let query = supabase
+    // get user's household
+    const household = await getUserHousehold();
+
+    // get both default categories (household_id IS NULL) and household's custom categories
+    const { data: categories, error } = await supabase
         .from('categories')
         .select('*')
-        .eq('user_id', user.id)
+        .or(`household_id.is.null, household_id.eq.${household.id}`)
+        .eq('archived', false)
         .order('name');
-
-    if (!includeArchived) {
-        query = query.eq('archived', false);
-    }
-
-    const { data: categories, error } = await query;
 
     if (error) throw error;
 
-    // Get transaction stats for each category
-    const categoriesWithStats = await Promise.all((categories || []).map(async (category) => {
-        const { data: transactions } = await supabase
-            .from('transactions')
-            .select('amount, is_income')
-            .eq('user_id', user.id)
-            .eq('category_id', category.id);
-
-        const totalSpent = transactions?.reduce((sum, t) => {
-
-            // only count expenses (negative amounts or is_income = false)
-            if (t.is_income) return sum;
-
-            return sum + Math.abs(t.amount);
-        }, 0) || 0
-
-        const transactionCount = transactions?.length || 0;
-
-        return {
-            ...category,
-            totalSpent,
-            transactionCount
-        }
-    }));
-
-    return categoriesWithStats;
+    return categories || [];
 }
 
 export async function createCategory(name: string, color: string) {
@@ -62,22 +36,23 @@ export async function createCategory(name: string, color: string) {
         throw new Error('Unauthorized');
     }
 
+    // get user's household
+    const household = await getUserHousehold();
+
+    // create custom category for the household
     const { data, error } = await supabase
         .from('categories')
         .insert({
-            user_id: user.id,
             name,
             color,
-            is_system: false,
+            household_id: household.id, // custom category
+            user_id: user.id,
             archived: false
         })
         .select()
         .single();
 
     if (error) throw error;
-
-    revalidatePath('/categories');
-    revalidatePath('/transactions');
 
     return data;
 }
@@ -90,37 +65,17 @@ export async function updateCategory(id: string, name: string, color: string) {
         throw new Error('Unauthorized');
     }
 
-    // check if category is a system category
-    const { data: category } = await supabase
+    // get user's household
+    const household = await getUserHousehold();
+
+    // can only update custom categories (with household_id)
+    const { error } = await supabase
         .from('categories')
-        .select('is_system')
+        .update({ name, color })
         .eq('id', id)
-        .eq('user_id', user.id)
-        .single();
-
-    if (!category) {
-        throw new Error('Category not found');
-    }
-
-  // if system category, only allow color changes
-  const updates = category.is_system 
-    ? { color }
-    : { name, color };
-
-    const { data, error } = await supabase
-        .from('categories')
-        .update(updates)
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .select()
-        .single();
+        .eq('household_id', household.id); // only custom categories
 
     if (error) throw error;
-
-    revalidatePath('/categories');
-    revalidatePath('/transactions');
-
-    return data;
 }
 
 export async function archiveCategory(id: string) {
@@ -131,52 +86,17 @@ export async function archiveCategory(id: string) {
         throw new Error('Unauthorized');
     }
 
-    // check if category is a system category
-    const { data: category } = await supabase
-        .from('categories')
-        .select('is_system')
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .single();
+    // get user's household
+    const household = await getUserHousehold();
 
-    if (!category) {
-        throw new Error('Category not found');
-    }
-
-    if (category.is_system) {
-        throw new Error('Cannot archive system categories');
-    }
-
+    // can only archive custom categories
     const { error } = await supabase
         .from('categories')
         .update({ archived: true })
         .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('household_id', household.id);
 
     if (error) throw error;
-
-    revalidatePath('/categories');
-    revalidatePath('/transactions');
-}
-
-export async function unarchiveCategory(id: string) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-        throw new Error('Unauthorized');
-    }
-
-    const { error } = await supabase
-        .from('categories')
-        .update({ archived: false })
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-    if (error) throw error;
-
-    revalidatePath('/categories');
-    revalidatePath('/transactions');
 }
 
 export async function deleteCategory(id: string) {
@@ -187,42 +107,64 @@ export async function deleteCategory(id: string) {
         throw new Error('Unauthorized');
     }
 
-    // check if category is a system category
-    const { data: category } = await supabase
-        .from('categories')
-        .select('is_system')
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .single();
+    // get user's household
+    const household = await getUserHousehold();
 
-    if (!category) {
-        throw new Error('Category not found');
-    }
-
-    if (category.is_system) {
-        throw new Error('Cannot delete system categories');
-    }
-
-    // set transactions to null category before deleting
-    await supabase
-        .from('transactions')
-        .update({ category_id: null })
-        .eq('category_id', id)
-        .eq('user_id', user.id);
-
+    // can only delete custom categories
     const { error } = await supabase
         .from('categories')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('household_id', household.id);
 
     if (error) throw error;
-
-    revalidatePath('/categories');
-    revalidatePath('/transactions');
 }
 
-export async function mergeCategories(fromCategoryId: string, toCategoryId: string) {
+export async function mergeCategories(sourceIds: string[], targetId: string) {
+    const supabase = await createClient();
+    const serviceSupabase = createServiceClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error('Unauthorized');
+    }
+
+    // get user's household
+    const household = await getUserHousehold();
+
+    // verify target category exists and is accessible (default or household's)
+    const { data: targetCategory } = await supabase
+        .from('categories')
+        .select('id, household_id')
+        .eq('id', targetId)
+        .or(`household_id.is.null,household_id.eq.${household.id}`)
+        .single();
+
+    if (!targetCategory) {
+        throw new Error('Target category not found or not accessible');
+    }
+
+    // update all transactions from source categories to target
+    // using service client because we're updating transactions that might have RLS restrictions
+    const { error: updateError } = await serviceSupabase
+        .from('transactions')
+        .update({ category_id: targetId })
+        .in('category_id', sourceIds)
+        .eq('household_id', household.id);
+
+    if (updateError) throw updateError;
+
+    // delete source categories (only custom ones can be deleted)
+    const { error: deleteError } = await supabase
+        .from('categories')
+        .delete()
+        .in('id', sourceIds)
+        .eq('household_id', household.id); // only delete custom categories
+
+    if (deleteError) throw deleteError;
+}
+
+export async function getCategoryStats(categoryId: string) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -230,30 +172,36 @@ export async function mergeCategories(fromCategoryId: string, toCategoryId: stri
         throw new Error('Unauthorized');
     }
 
-    // check if target category is valid
-    const { data: toCategory } = await supabase
+    // get user's household
+    const household = await getUserHousehold();
+
+    // verify category is accessible
+    const { data: category } = await supabase
         .from('categories')
         .select('id')
-        .eq('id', toCategoryId)
-        .eq('user_id', user.id)
+        .eq('id', categoryId)
+        .or(`household_id.is.null,household_id.eq.${household.id}`)
         .single();
 
-    if (!toCategory) {
-        throw new Error('Target category not found');
+    if (!category) {
+        throw new Error('Category not found or not accessible');
     }
 
-    // update all transactions from old category to new category
-    const { error: updateError } = await supabase
+    // get stats for this category from household's transactions
+    const { data: transactions } = await supabase
         .from('transactions')
-        .update({ category_id: toCategoryId })
-        .eq('category_id', fromCategoryId)
-        .eq('user_id', user.id);
+        .select('amount, is_income')
+        .eq('category_id', categoryId)
+        .eq('household_id', household.id);
 
-    if (updateError) throw updateError;
+    const totalSpent = transactions
+        ?.filter(t => !t.is_income)
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0) || 0;
 
-    // delete the old category (will fail if it's a system category)
-    await deleteCategory(fromCategoryId);
+    const transactionCount = transactions?.length || 0;
 
-    revalidatePath('/categories');
-    revalidatePath('/transactions');
+    return {
+        totalSpent,
+        transactionCount
+    };
 }
