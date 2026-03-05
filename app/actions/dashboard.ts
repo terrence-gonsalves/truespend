@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { getUserHousehold } from './household';
 
 export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month' | '30days' = '7days') {
     const supabase = await createClient();
@@ -9,6 +10,9 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
     if (!user) {
         throw new Error('Unauthorized');
     }
+
+    // get user's household
+    const household = await getUserHousehold();
 
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -25,11 +29,11 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
             trendStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             break;
         case 'month':
-            trendDays = now.getDate(); // days in current month so far
+            trendDays = now.getDate(); // Days in current month so far
             trendStartDate = monthStart;
             break;
-        case '30days':;
-            trendDays = 30
+        case '30days':
+            trendDays = 30;
             trendStartDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             break;
         case '7days':
@@ -43,7 +47,7 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
     const { data: monthTransactions } = await supabase
         .from('transactions')
         .select('amount, is_income, category_id, categories(name, color)')
-        .eq('user_id', user.id)
+        .eq('household_id', household.id)
         .gte('date', monthStart)
         .lte('date', monthEnd);
 
@@ -51,7 +55,7 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
     const { data: trendTransactions } = await supabase
         .from('transactions')
         .select('date, amount, is_income')
-        .eq('user_id', user.id)
+        .eq('household_id', household.id)
         .gte('date', trendStartDate)
         .order('date', { ascending: true });
 
@@ -63,7 +67,7 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
             category:categories(id, name, color),
             account:accounts(id, name, institution)
         `)
-        .eq('user_id', user.id)
+        .eq('household_id', household.id)
         .order('date', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(10);
@@ -72,21 +76,21 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
     const { data: budgets } = await supabase
         .from('budgets')
         .select('*, category:categories(name, color)')
-        .eq('user_id', user.id)
+        .eq('household_id', household.id)
         .eq('month', currentMonth);
 
     // get all categories and accounts for editing
     const { data: categories } = await supabase
         .from('categories')
         .select('*')
-        .eq('user_id', user.id)
+        .or(`household_id.is.null,household_id.eq.${household.id}`)
         .eq('archived', false)
         .order('name');
 
     const { data: accounts } = await supabase
         .from('accounts')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('household_id', household.id)
         .order('name');
 
     // calculate summary stats
@@ -104,7 +108,8 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         // handle category data which may be null or have null fields
         const categoryData = t.categories as { name: string; color: string | null } | null;
         const categoryName = categoryData?.name ?? 'Uncategorized';
-        const categoryColor = categoryData?.color ?? '#6B7280';        
+        const categoryColor = categoryData?.color ?? '#6B7280';
+        
         const current = categorySpending.get(categoryName) || { name: categoryName, color: categoryColor, amount: 0 };
 
         current.amount += Math.abs(t.amount);
@@ -114,10 +119,10 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
     const spendingByCategory = Array.from(categorySpending.values())
         .sort((a, b) => b.amount - a.amount);
 
-    // calculate daily spending for trend period
+    // Calculate daily spending for trend period
     const dailySpending = new Map<string, number>();
     
-    // initialize all dates in the period
+    // Initialize all dates in the period
     for (let i = trendDays - 1; i >= 0; i--) {
         const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
         const dateStr = date.toISOString().split('T')[0];
@@ -127,7 +132,6 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
 
     trendTransactions?.forEach(t => {
         if (t.is_income) return;
-
         const current = dailySpending.get(t.date) || 0;
 
         dailySpending.set(t.date, current + Math.abs(t.amount));
@@ -144,15 +148,15 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         .filter(budget => budget.category_id !== null)
         .map(async (budget) => {
             const { data: transactions } = await supabase
-            .from('transactions')
-            .select('amount, is_income')
-            .eq('user_id', user.id)
-            .eq('category_id', budget.category_id!)
-            .gte('date', monthStart)
-            .lte('date', monthEnd);
+                .from('transactions')
+                .select('amount, is_income')
+                .eq('household_id', household.id)
+                .eq('category_id', budget.category_id!)
+                .gte('date', monthStart)
+                .lte('date', monthEnd);
 
-        const spent = transactions?.reduce((sum, t) => 
-            !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
+            const spent = transactions?.reduce((sum, t) => 
+                !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
             
             const percentage = (spent / budget.amount) * 100;
 
