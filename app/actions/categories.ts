@@ -19,13 +19,66 @@ export async function getCategories() {
     const { data: categories, error } = await supabase
         .from('categories')
         .select('*')
-        .or(`household_id.is.null, household_id.eq.${household.id}`)
+        .or(`household_id.is.null,household_id.eq.${household.id}`)
         .eq('archived', false)
         .order('name');
 
     if (error) throw error;
 
     return categories || [];
+}
+
+export async function getCategoriesWithStats(includeArchived: boolean = false) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error('Unauthorized');
+    }
+
+    // get user's household
+    const household = await getUserHousehold();
+
+    // build query for both default and custom categories
+    let query = supabase
+        .from('categories')
+        .select('*')
+        .or(`household_id.is.null,household_id.eq.${household.id}`)
+        .order('name');
+
+    // filter by archived status if not including archived
+    if (!includeArchived) {
+        query = query.eq('archived', false);
+    }
+
+    const { data: categories, error } = await query;
+
+    if (error) throw error;
+
+    // get transaction stats for each category
+    const categoriesWithStats = await Promise.all(
+        (categories || []).map(async (category) => {
+            const { data: transactions } = await supabase
+                .from('transactions')
+                .select('amount, is_income')
+                .eq('category_id', category.id)
+                .eq('household_id', household.id);
+
+            const totalSpent = transactions
+                ?.filter(t => !t.is_income)
+                .reduce((sum, t) => sum + Math.abs(t.amount), 0) || 0;
+
+            const transactionCount = transactions?.length || 0;
+
+            return {
+                ...category,
+                totalSpent,
+                transactionCount
+            };
+        })
+    )
+
+    return categoriesWithStats
 }
 
 export async function createCategory(name: string, color: string) {
@@ -46,7 +99,6 @@ export async function createCategory(name: string, color: string) {
             name,
             color,
             household_id: household.id, // custom category
-            user_id: user.id,
             archived: false
         })
         .select()
@@ -99,6 +151,27 @@ export async function archiveCategory(id: string) {
     if (error) throw error;
 }
 
+export async function unarchiveCategory(id: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error('Unauthorized');
+    }
+
+    // get user's household
+    const household = await getUserHousehold();
+
+    // can only unarchive custom categories
+    const { error } = await supabase
+        .from('categories')
+        .update({ archived: false })
+        .eq('id', id)
+        .eq('household_id', household.id);
+
+    if (error) throw error;
+}
+
 export async function deleteCategory(id: string) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -120,7 +193,7 @@ export async function deleteCategory(id: string) {
     if (error) throw error;
 }
 
-export async function mergeCategories(sourceIds: string[], targetId: string) {
+export async function mergeCategories(sourceIds: string | string[], targetId: string) {
     const supabase = await createClient();
     const serviceSupabase = createServiceClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -131,6 +204,9 @@ export async function mergeCategories(sourceIds: string[], targetId: string) {
 
     // get user's household
     const household = await getUserHousehold();
+
+    // convert single ID to array for consistent handling
+    const sourceIdsArray = Array.isArray(sourceIds) ? sourceIds : [sourceIds];
 
     // verify target category exists and is accessible (default or household's)
     const { data: targetCategory } = await supabase
@@ -149,7 +225,7 @@ export async function mergeCategories(sourceIds: string[], targetId: string) {
     const { error: updateError } = await serviceSupabase
         .from('transactions')
         .update({ category_id: targetId })
-        .in('category_id', sourceIds)
+        .in('category_id', sourceIdsArray)
         .eq('household_id', household.id);
 
     if (updateError) throw updateError;
@@ -158,7 +234,7 @@ export async function mergeCategories(sourceIds: string[], targetId: string) {
     const { error: deleteError } = await supabase
         .from('categories')
         .delete()
-        .in('id', sourceIds)
+        .in('id', sourceIdsArray)
         .eq('household_id', household.id); // only delete custom categories
 
     if (deleteError) throw deleteError;
