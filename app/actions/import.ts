@@ -1,58 +1,10 @@
-    'use server';
+'use server';
 
-    import { createClient } from '@/lib/supabase/server';
-    import { type ColumnMapping, type TransactionRow } from '@/lib/csv-utils';
-    import { revalidatePath } from 'next/cache';
-    import type { Json } from '@/types/supabase';
-
-export async function ensureDefaultCategories() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-        throw new Error('Unauthorized');
-    }
-
-    // check if user already has categories
-    const { data: existingCategories } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('user_id', user.id)
-        .limit(1);
-
-    if (existingCategories && existingCategories.length > 0) {
-        return; // categories already exist
-    }
-
-    // create default system categories
-    const defaultCategories = [
-        { name: 'Uncategorized', color: '#6B7280', is_system: true },
-        { name: 'Income', color: '#10B981', is_system: true },
-        { name: 'Transfer', color: '#3B82F6', is_system: true },
-        { name: 'Groceries', color: '#F59E0B', is_system: false },
-        { name: 'Dining', color: '#EF4444', is_system: false },
-        { name: 'Transportation', color: '#8B5CF6', is_system: false },
-        { name: 'Shopping', color: '#EC4899', is_system: false },
-        { name: 'Entertainment', color: '#14B8A6', is_system: false },
-        { name: 'Bills', color: '#F97316', is_system: false },
-        { name: 'Healthcare', color: '#06B6D4', is_system: false },
-    ];
-
-    const categoriesToInsert = defaultCategories.map(cat => ({
-        ...cat,
-        user_id: user.id
-    }));
-
-    const { error } = await supabase
-        .from('categories')
-        .insert(categoriesToInsert);
-
-    if (error) {
-        console.error('Error creating default categories:', error);
-
-        throw error;
-    }
-}
+import { createClient } from '@/lib/supabase/server';
+import { getUserHousehold } from './household';
+import { type ColumnMapping, type TransactionRow } from '@/lib/csv-utils';
+import { revalidatePath } from 'next/cache';
+import type { Json } from '@/types/supabase';
 
 export async function getCategories() {
     const supabase = await createClient();
@@ -62,13 +14,14 @@ export async function getCategories() {
         throw new Error('Unauthorized');
     }
 
-    // ensure default categories exist
-    await ensureDefaultCategories();
+    // get user's household
+    const household = await getUserHousehold();
 
+    // get both default and custom categories
     const { data, error } = await supabase
         .from('categories')
         .select('*')
-        .eq('user_id', user.id)
+        .or(`household_id.is.null,household_id.eq.${household.id}`)
         .eq('archived', false)
         .order('name');
 
@@ -85,10 +38,13 @@ export async function getAccounts() {
         throw new Error('Unauthorized');
     }
 
+    // get user's household
+    const household = await getUserHousehold();
+
     const { data, error } = await supabase
         .from('accounts')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('household_id', household.id)
         .order('name');
 
     if (error) throw error;
@@ -104,10 +60,14 @@ export async function createAccount(name: string, institution?: string) {
         throw new Error('Unauthorized');
     }
 
+    // get user's household
+    const household = await getUserHousehold();
+
     const { data, error } = await supabase
         .from('accounts')
         .insert({
             user_id: user.id,
+            household_id: household.id,
             name,
             institution
         })
@@ -132,11 +92,14 @@ export async function importTransactions(
         throw new Error('Unauthorized');
     }
 
-    // get category mappings
+    // get user's household
+    const household = await getUserHousehold();
+
+    // get category mappings (both default and custom)
     const { data: categories } = await supabase
         .from('categories')
         .select('id, name')
-        .eq('user_id', user.id);
+        .or(`household_id.is.null,household_id.eq.${household.id}`);
 
     const categoryMap = new Map(categories?.map(c => [c.name.toLowerCase(), c.id]) || []);
 
@@ -155,6 +118,7 @@ export async function importTransactions(
 
         return {
             user_id: user.id,
+            household_id: household.id,
             account_id: defaultAccountId,
             date: t.date,
             description: t.description,
@@ -191,6 +155,7 @@ export async function importTransactions(
         .from('import_batches')
         .insert({
             user_id: user.id,
+            household_id: household.id,
             filename,
             row_count: transactions.length,
             success_count: insertedTransactions?.length || 0,
@@ -219,6 +184,9 @@ export async function saveColumnMapping(name: string, mapping: ColumnMapping) {
         throw new Error('Unauthorized');
     }
 
+    // get user's household
+    const household = await getUserHousehold();
+
     // convert ColumnMapping to a plain object that matches Json type
     const mappingJson: Record<string, number | null | undefined> = {
         date: mapping.date,
@@ -233,6 +201,7 @@ export async function saveColumnMapping(name: string, mapping: ColumnMapping) {
         .from('column_mapping_presets')
         .insert({
             user_id: user.id,
+            household_id: household.id,
             name,
             mapping: mappingJson as Json
         })
@@ -252,10 +221,13 @@ export async function getColumnMappingPresets() {
         throw new Error('Unauthorized');
     }
 
+    // get user's household
+    const household = await getUserHousehold();
+
     const { data, error } = await supabase
         .from('column_mapping_presets')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('household_id', household.id)
         .order('created_at', { ascending: false });
 
     if (error) throw error;

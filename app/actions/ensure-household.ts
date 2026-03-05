@@ -11,8 +11,6 @@ export async function ensureUserHousehold() {
         throw new Error('Unauthorized');
     }
 
-    console.log('ensureUserHousehold: User ID:', user.id);
-
     // check if user already has a household using regular client
     const { data: existingMembership, error: membershipError } = await supabase
         .from('household_members')
@@ -25,11 +23,8 @@ export async function ensureUserHousehold() {
     }
 
     if (existingMembership) {
-        console.log('User already has household:', existingMembership.household_id);
         return existingMembership.household_id;
     }
-
-    console.log('No household found, creating new one...');
 
     // use service role client to bypass RLS for creation
     const serviceSupabase = createServiceClient();
@@ -43,7 +38,6 @@ export async function ensureUserHousehold() {
     }
 
     const inviteCode = inviteCodeData as string;
-    console.log('Generated invite code:', inviteCode);
 
     // create household with service role (bypasses RLS)
     const { data: newHousehold, error: createError } = await serviceSupabase
@@ -65,8 +59,6 @@ export async function ensureUserHousehold() {
         throw new Error('Failed to create household - no data returned');
     }
 
-    console.log('Created household:', newHousehold.id);
-
     // add user as member with service role
     const { error: memberError } = await serviceSupabase
         .from('household_members')
@@ -79,7 +71,6 @@ export async function ensureUserHousehold() {
         console.error('Error adding household member:', memberError);
         throw memberError;
     }
-
-    console.log('Added user to household successfully');
+    
     return newHousehold.id;
 }
