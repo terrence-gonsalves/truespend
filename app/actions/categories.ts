@@ -193,7 +193,7 @@ export async function deleteCategory(id: string) {
   if (error) throw error
 }
 
-export async function mergeCategories(sourceIds: string[], targetId: string) {
+export async function mergeCategories(sourceIds: string | string[], targetId: string) {
   const supabase = await createClient()
   const serviceSupabase = createServiceClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -204,6 +204,9 @@ export async function mergeCategories(sourceIds: string[], targetId: string) {
 
   // Get user's household
   const household = await getUserHousehold()
+
+  // Convert single ID to array for consistent handling
+  const sourceIdsArray = Array.isArray(sourceIds) ? sourceIds : [sourceIds]
 
   // Verify target category exists and is accessible (default or household's)
   const { data: targetCategory } = await supabase
@@ -222,7 +225,7 @@ export async function mergeCategories(sourceIds: string[], targetId: string) {
   const { error: updateError } = await serviceSupabase
     .from('transactions')
     .update({ category_id: targetId })
-    .in('category_id', sourceIds)
+    .in('category_id', sourceIdsArray)
     .eq('household_id', household.id)
 
   if (updateError) throw updateError
@@ -231,7 +234,7 @@ export async function mergeCategories(sourceIds: string[], targetId: string) {
   const { error: deleteError } = await supabase
     .from('categories')
     .delete()
-    .in('id', sourceIds)
+    .in('id', sourceIdsArray)
     .eq('household_id', household.id) // Only delete custom categories
 
   if (deleteError) throw deleteError
