@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getTransactions, type TransactionFilters } from '@/app/actions/transaction';
+import { getTransactions, type TransactionFilters } from '@/app/actions/transactions';
 import { getCategories, getAccounts } from '@/app/actions/import';
 import { TransactionTable } from './transaction-table';
 import { TransactionFilters as Filters } from './transaction-filters';

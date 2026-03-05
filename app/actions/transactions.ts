@@ -34,7 +34,7 @@ export async function getTransactions(
         category:categories(id, name, color),
         account:accounts(id, name, institution)
         `, { count: 'exact' })
-        .eq('household_id', household.id); 
+        .eq('household_id', household.id);
 
     // apply filters
     if (filters?.dateFrom) {
@@ -205,4 +205,53 @@ export async function bulkUpdateAccount(ids: string[], accountId: string | null)
 
     revalidatePath('/transactions');
     revalidatePath('/dashboard');
+}
+
+export async function createTransaction(data: {
+    date: string
+    description: string
+    amount: number
+    category_id: string | null
+    account_id: string | null
+    is_income: boolean
+}) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error('Unauthorized');
+    }
+
+    // get user's household
+    const household = await getUserHousehold();
+
+    // create a hash for the transaction (for deduplication)
+    const hashString = `${data.date}-${data.description}-${data.amount}-${user.id}`;
+    const encoder = new TextEncoder();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(hashString));
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    const { data: newTransaction, error } = await supabase
+        .from('transactions')
+        .insert({
+            user_id: user.id,
+            household_id: household.id,
+            date: data.date,
+            description: data.description,
+            amount: data.amount,
+            category_id: data.category_id,
+            account_id: data.account_id,
+            is_income: data.is_income,
+            hash: hash
+        })
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    revalidatePath('/transactions');
+    revalidatePath('/dashboard');
+
+    return newTransaction;
 }

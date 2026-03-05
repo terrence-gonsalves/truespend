@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react'
-import { bulkDeleteTransactions, bulkUpdateCategory, bulkUpdateAccount } from '@/app/actions/transaction';
+import { bulkDeleteTransactions, bulkUpdateCategory, bulkUpdateAccount } from '@/app/actions/transactions';
 import { DeleteConfirmDialog } from './delete-confirm-dialog';
 import type { Category, Account } from '@/types/transactions';
 
