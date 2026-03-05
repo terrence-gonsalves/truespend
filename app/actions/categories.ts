@@ -28,6 +28,53 @@ export async function getCategories() {
     return categories || [];
 }
 
+export async function getCategoriesWithStats() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error('Unauthorized');
+    }
+
+    // get user's household
+    const household = await getUserHousehold()
+
+    // get both default and custom categories
+    const { data: categories, error } = await supabase
+        .from('categories')
+        .select('*')
+        .or(`household_id.is.null,household_id.eq.${household.id}`)
+        .eq('archived', false)
+        .order('name');
+
+    if (error) throw error;
+
+    // get transaction stats for each category
+    const categoriesWithStats = await Promise.all(
+        (categories || []).map(async (category) => {
+            const { data: transactions } = await supabase
+                .from('transactions')
+                .select('amount, is_income')
+                .eq('category_id', category.id)
+                .eq('household_id', household.id);
+
+            const totalSpent = transactions
+                ?.filter(t => !t.is_income)
+                .reduce((sum, t) => sum + Math.abs(t.amount), 0) || 0;
+
+            const transactionCount = transactions?.length || 0;
+
+            return {
+                ...category,
+                totalSpent,
+                transactionCount
+            };
+        })
+    );
+
+    return categoriesWithStats;
+}
+
 export async function createCategory(name: string, color: string) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
