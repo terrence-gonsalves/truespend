@@ -93,7 +93,6 @@ export function TransactionList() {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Transactions</h2>
                 <button
                     onClick={() => setShowAddModal(true)}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
