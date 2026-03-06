@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { createTransaction } from '@/app/actions/transactions'
-import { useToast } from '@/components/ui/toast'
+import { useState } from 'react';
+import { createTransaction } from '@/app/actions/transactions';
+import { useToast } from '@/components/ui/toast';
 
 interface AddTransactionModalProps {
     isOpen: boolean
     onClose: () => void
     onSuccess: () => void
-    categories: Array<{ id: string; name: string; color: string }>
+    categories: Array<{ id: string; name: string; color: string | null }>
     accounts: Array<{ id: string; name: string; institution?: string | null }>
 }
 
@@ -30,7 +30,7 @@ export function AddTransactionModal({
     });
     const { showToast } = useToast();
 
-    const handleSubmit = async (e: React.FormEvent) => {  
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!formData.description.trim()) {
@@ -44,19 +44,19 @@ export function AddTransactionModal({
         }
 
         setLoading(true);
-        
+
         try {
             await createTransaction({
-              date: formData.date,
-              description: formData.description.trim(),
-              amount: parseFloat(formData.amount),
-              category_id: formData.category_id || null,
-              account_id: formData.account_id || null,
-              is_income: formData.is_income
+                date: formData.date,
+                description: formData.description.trim(),
+                amount: parseFloat(formData.amount),
+                category_id: formData.category_id || null,
+                account_id: formData.account_id || null,
+                is_income: formData.is_income
             });
 
             showToast('Transaction added successfully!', 'success');
-            
+        
             // reset form
             setFormData({
                 date: new Date().toISOString().split('T')[0],
@@ -75,7 +75,7 @@ export function AddTransactionModal({
         } finally {
             setLoading(false);
         }
-    };
+    }
 
     const handleCancel = () => {
         setFormData({
@@ -86,7 +86,6 @@ export function AddTransactionModal({
             account_id: '',
             is_income: false
         });
-
         onClose();
     };
 
@@ -96,7 +95,7 @@ export function AddTransactionModal({
         <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center p-4">
                 <div className="fixed inset-0 bg-black bg-opacity-30" onClick={handleCancel} />
-              
+                
                 <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
                     <h2 className="text-xl font-semibold text-gray-900 mb-4">
                         Add Transaction
@@ -112,7 +111,7 @@ export function AddTransactionModal({
                                     type="button"
                                     onClick={() => setFormData({ ...formData, is_income: false })}
                                     className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
-                                      !formData.is_income
+                                        !formData.is_income
                                         ? 'bg-red-600 text-white'
                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
@@ -123,7 +122,7 @@ export function AddTransactionModal({
                                     type="button"
                                     onClick={() => setFormData({ ...formData, is_income: true })}
                                     className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
-                                      formData.is_income
+                                        formData.is_income
                                         ? 'bg-green-600 text-white'
                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
@@ -167,14 +166,14 @@ export function AddTransactionModal({
                             <div className="relative">
                                 <span className="absolute left-3 top-2 text-gray-500">$</span>
                                 <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={formData.amount}
-                                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                    placeholder="0.00"
-                                    className="w-full pl-7 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    required
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={formData.amount}
+                                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                placeholder="0.00"
+                                className="w-full pl-7 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                required
                                 />
                             </div>
                         </div>

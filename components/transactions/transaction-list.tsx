@@ -7,6 +7,7 @@ import { TransactionTable } from './transaction-table';
 import { TransactionFilters as Filters } from './transaction-filters';
 import { BulkActions } from './bulk-actions';
 import type { Transaction, Category, Account } from '@/types/transactions';
+import { AddTransactionModal } from './add-transaction-modal';
 
 export function TransactionList() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -20,6 +21,7 @@ export function TransactionList() {
     const [filters, setFilters] = useState<TransactionFilters>({
         transactionType: 'all'
     });
+    const [showAddModal, setShowAddModal] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -90,6 +92,19 @@ export function TransactionList() {
 
     return (
         <div className="space-y-6">
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Transactions</h2>
+                <button
+                    onClick={() => setShowAddModal(true)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
+                >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Transaction
+                </button>
+            </div>
+
             <Filters
                 filters={filters}
                 categories={categories}
@@ -179,6 +194,15 @@ export function TransactionList() {
             </div>
             )}
             
+            <AddTransactionModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onSuccess={() => {
+                    loadData()
+                }}
+                categories={categories}
+                accounts={accounts}
+            />
         </div>
     )
 }
