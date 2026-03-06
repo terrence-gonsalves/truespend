@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { TransactionFilters as Filters } from '@/app/actions/transaction';
+import type { TransactionFilters as Filters } from '@/app/actions/transactions';
 import type { Category, Account } from '@/types/transactions';
 
 interface TransactionFiltersProps {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react'
-import { updateTransaction, deleteTransaction } from '@/app/actions/transaction';
+import { updateTransaction, deleteTransaction } from '@/app/actions/transactions';
 import { DeleteConfirmDialog } from './delete-confirm-dialog';
 import { formatCurrency } from '@/lib/format';
 import type { Transaction, Category, Account } from '@/types/transactions';

@@ -27,12 +27,6 @@ export default async function TransactionsPage() {
                 </div>
                 
                 <TransactionList />
-
-                <div className="mt-6">
-                    <Link href="/dashboard" className="text-sm text-blue-600 hover:text-blue-700">
-                        Back to Dashboard
-                    </Link>
-                </div>
             </div>
         </ProtectedLayout>
     );
