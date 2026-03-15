@@ -30,10 +30,11 @@ export async function getTransactions(
     let query = supabase
         .from('transactions')
         .select(`
-        *,
-        category:categories(id, name, color),
-        account:accounts(id, name, institution)
-        `, { count: 'exact' })
+            *,
+            category:categories(id, name, color),
+            account:accounts(id, name, institution)
+            `, { count: 'exact' }
+        )
         .eq('household_id', household.id);
 
     // apply filters

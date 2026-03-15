@@ -94,10 +94,8 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         .order('name');
 
     // calculate summary stats
-    const income = monthTransactions?.reduce((sum, t) => 
-        t.is_income ? sum + t.amount : sum, 0) || 0;
-    const expenses = monthTransactions?.reduce((sum, t) => 
-        !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
+    const income = monthTransactions?.reduce((sum, t) => t.is_income ? sum + t.amount : sum, 0) || 0;
+    const expenses = monthTransactions?.reduce((sum, t) => !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
 
     // calculate spending by category
     const categorySpending = new Map<string, { name: string; color: string; amount: number }>();
@@ -119,21 +117,22 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
     const spendingByCategory = Array.from(categorySpending.values())
         .sort((a, b) => b.amount - a.amount);
 
-    // Calculate daily spending for trend period
+    // calculate daily spending for trend period using proper date handling
     const dailySpending = new Map<string, number>();
     
-    // Initialize all dates in the period
-    for (let i = trendDays - 1; i >= 0; i--) {
-        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    // initialize all dates in the period (going forward from oldest to newest)
+    for (let i = 0; i < trendDays; i++) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - (trendDays - 1 - i));
         const dateStr = date.toISOString().split('T')[0];
-
         dailySpending.set(dateStr, 0);
     }
 
     trendTransactions?.forEach(t => {
         if (t.is_income) return;
-        const current = dailySpending.get(t.date) || 0;
 
+        const current = dailySpending.get(t.date) || 0;
+        
         dailySpending.set(t.date, current + Math.abs(t.amount));
     })
 
