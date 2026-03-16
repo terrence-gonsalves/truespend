@@ -27,10 +27,16 @@ export function SpendingTrendChart({ data, period }: SpendingTrendChartProps) {
         }
     };
 
-    const chartData = data.map(item => ({
-        date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        amount: item.amount
-    }));
+    // parse date as local time to avoid timezone shift
+    const chartData = data.map(item => {
+        const [year, month, day] = item.date.split('-').map(Number);
+        const date = new Date(year, month - 1, day); // create date in local timezone
+        
+        return {
+            date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            amount: item.amount
+        };
+    });
 
     return (
         <div className="bg-white rounded-lg shadow p-6">

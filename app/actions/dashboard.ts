@@ -133,8 +133,6 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         dailySpending.set(dateStr, 0);
     }
 
-    console.log('Created dates:', Array.from(dailySpending.keys()));
-
     trendTransactions?.forEach(t => {
         if (t.is_income) return;
         const current = dailySpending.get(t.date) || 0;
@@ -145,8 +143,6 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         date,
         amount
     }));
-
-    console.log('spendingTrend:', Array.from(spendingTrend.values()));
 
     // calculate budget alerts
     const budgetAlerts = await Promise.all(
