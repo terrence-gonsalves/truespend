@@ -111,6 +111,10 @@ export function DashboardContent() {
         );
     }
 
+    console.log('Spending trend data:', data.spendingTrend);
+    console.log('Number of points:', data.spendingTrend.length);
+    console.log('Dates:', data.spendingTrend.map(d => d.date));
+
     return (
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <div className="mb-8">
