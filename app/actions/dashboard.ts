@@ -146,6 +146,8 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         amount
     }));
 
+    console.log('spendingTrend:', Array.from(spendingTrend.keys()));
+
     // calculate budget alerts
     const budgetAlerts = await Promise.all(
         (budgets || [])
