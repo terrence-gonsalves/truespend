@@ -94,8 +94,10 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         .order('name');
 
     // calculate summary stats
-    const income = monthTransactions?.reduce((sum, t) => t.is_income ? sum + t.amount : sum, 0) || 0;
-    const expenses = monthTransactions?.reduce((sum, t) => !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
+    const income = monthTransactions?.reduce((sum, t) => 
+        t.is_income ? sum + t.amount : sum, 0) || 0;
+    const expenses = monthTransactions?.reduce((sum, t) => 
+        !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
 
     // calculate spending by category
     const categorySpending = new Map<string, { name: string; color: string; amount: number }>();
@@ -135,8 +137,12 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
 
     trendTransactions?.forEach(t => {
         if (t.is_income) return;
-        const current = dailySpending.get(t.date) || 0;
-        dailySpending.set(t.date, current + Math.abs(t.amount));
+
+        // only add transactions that are in our initialized date range
+        if (dailySpending.has(t.date)) {
+            const current = dailySpending.get(t.date) || 0;
+            dailySpending.set(t.date, current + Math.abs(t.amount));
+        }
     })
 
     const spendingTrend = Array.from(dailySpending.entries()).map(([date, amount]) => ({
@@ -181,9 +187,6 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
     const featuredBudgets = [...over80, ...top5]
         .filter((v, i, a) => a.findIndex(t => t.category?.name === v.category?.name) === i)
         .slice(0, 10);
-
-    console.log('About to return spending trend:', spendingTrend.map(d => d.date));
-    console.log('Spending trend count:', spendingTrend.length);
 
     return {
         summary: {
