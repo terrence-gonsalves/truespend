@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { updateTransaction, deleteTransaction } from '@/app/actions/transactions';
 import { DeleteConfirmDialog } from '../transactions/delete-confirm-dialog';
 import { formatCurrency } from '@/lib/format';
+import { formatLocalDate } from '@/lib/format-date';
 import Link from 'next/link';
 import type { Transaction, Category, Account } from '@/types/transactions';
 
@@ -18,8 +19,7 @@ export function RecentTransactions({ transactions, categories, accounts, onRefre
     const [editingId, setEditingId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
-    const [deleting, setDeleting] = useState(false);
-    
+    const [deleting, setDeleting] = useState(false);    
     const [editData, setEditData] = useState<{
         date: string
         description: string
@@ -167,11 +167,11 @@ export function RecentTransactions({ transactions, categories, accounts, onRefre
                                     onChange={(e) => setEditData({ ...editData, account_id: e.target.value })}
                                     className="text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                 >
-                                <option value="">No Account</option>
+                                    <option value="">No Account</option>
 
-                                {accounts.map((acc) => (
-                                <option key={acc.id} value={acc.id}>{acc.name}</option>
-                                ))}
+                                    {accounts.map((acc) => (
+                                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                    ))}
 
                                 </select>
                             </div>
@@ -202,7 +202,7 @@ export function RecentTransactions({ transactions, categories, accounts, onRefre
                                 </p>
                                 <div className="flex items-center gap-2 mt-1">
                                     <p className="text-xs text-gray-500">
-                                        {new Date(transaction.date).toLocaleDateString()}
+                                        {formatLocalDate(transaction.date)}
                                     </p>
 
                                     {transaction.category && (
