@@ -133,6 +133,8 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         dailySpending.set(dateStr, 0);
     }
 
+    console.log('Created dates:', Array.from(dailySpending.keys()));
+
     trendTransactions?.forEach(t => {
         if (t.is_income) return;
         const current = dailySpending.get(t.date) || 0;
