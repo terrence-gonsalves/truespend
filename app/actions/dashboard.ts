@@ -182,6 +182,9 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         .filter((v, i, a) => a.findIndex(t => t.category?.name === v.category?.name) === i)
         .slice(0, 10);
 
+    console.log('About to return spending trend:', spendingTrend.map(d => d.date));
+    console.log('Spending trend count:', spendingTrend.length);
+
     return {
         summary: {
             income,
