@@ -88,7 +88,7 @@ export function DashboardContent() {
         if (data) {
             loadTrendOnly();
         }
-    }, [trendPeriod]);
+    }, [loadTrendOnly, data]);
 
     if (loading) {
         return (
