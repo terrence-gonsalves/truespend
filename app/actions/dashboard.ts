@@ -29,7 +29,7 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
             trendStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             break;
         case 'month':
-            trendDays = now.getDate(); // Days in current month so far
+            trendDays = now.getDate(); // days in current month so far
             trendStartDate = monthStart;
             break;
         case '30days':
@@ -94,8 +94,10 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
         .order('name');
 
     // calculate summary stats
-    const income = monthTransactions?.reduce((sum, t) => t.is_income ? sum + t.amount : sum, 0) || 0;
-    const expenses = monthTransactions?.reduce((sum, t) => !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
+    const income = monthTransactions?.reduce((sum, t) => 
+        t.is_income ? sum + t.amount : sum, 0) || 0;
+    const expenses = monthTransactions?.reduce((sum, t) => 
+        !t.is_income ? sum + Math.abs(t.amount) : sum, 0) || 0;
 
     // calculate spending by category
     const categorySpending = new Map<string, { name: string; color: string; amount: number }>();
@@ -121,18 +123,22 @@ export async function getDashboardData(trendPeriod: '7days' | '14days' | 'month'
     const dailySpending = new Map<string, number>();
     
     // initialize all dates in the period (going forward from oldest to newest)
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // normalize to start of day
+    
     for (let i = 0; i < trendDays; i++) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - (trendDays - 1 - i));
-        const dateStr = date.toISOString().split('T')[0];
+        const daysBack = trendDays - 1 - i;
+        const date = new Date(today);
+        date.setDate(date.getDate() - daysBack);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
         dailySpending.set(dateStr, 0);
     }
 
     trendTransactions?.forEach(t => {
         if (t.is_income) return;
-
         const current = dailySpending.get(t.date) || 0;
-        
         dailySpending.set(t.date, current + Math.abs(t.amount));
     })
 
