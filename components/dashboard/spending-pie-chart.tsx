@@ -60,7 +60,7 @@ export function SpendingPieChart({ data }: SpendingPieChartProps) {
         <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Spending by Category</h3>
 
-            <ResponsiveContainer width="100%" height={350}>
+            <ResponsiveContainer width="100%" height={370}>
                 <PieChart>
                     <Pie
                         data={chartData}
@@ -83,7 +83,6 @@ export function SpendingPieChart({ data }: SpendingPieChartProps) {
 
                     <Legend 
                         content={renderLegend}
-                        wrapperStyle={{ paddingTop: '20px' }}
                     />
                 </PieChart>
             </ResponsiveContainer>
