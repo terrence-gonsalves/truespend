@@ -111,8 +111,7 @@ export function TransactionTable({
                     </tbody>
                 </table>
             </div>
-
-            {/* Mobile Card View */}
+            
             <div className="md:hidden space-y-4">
 
                 {transactions.map((transaction) => (
