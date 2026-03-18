@@ -5,6 +5,7 @@ import { updateTransaction, deleteTransaction } from '@/app/actions/transactions
 import { DeleteConfirmDialog } from './delete-confirm-dialog';
 import { formatCurrency } from '@/lib/format';
 import type { Transaction, Category, Account } from '@/types/transactions';
+import { AddAccountModal } from '@/components/accounts/add-account-modal';
 
 interface TransactionCardProps {
     transaction: Transaction
@@ -27,7 +28,8 @@ export function TransactionCard({
     const [saving, setSaving] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [deleting, setDeleting] = useState(false);
-
+    const [showAddAccount, setShowAddAccount] = useState(false);
+    const [localAccounts, setLocalAccounts] = useState(accounts);
     const [editData, setEditData] = useState({
         date: transaction.date,
         description: transaction.description,
@@ -35,6 +37,11 @@ export function TransactionCard({
         category_id: transaction.category_id || '',
         account_id: transaction.account_id || ''
     });
+
+    // update local accounts when props change
+    if (accounts !== localAccounts && accounts.length !== localAccounts.length) {
+        setLocalAccounts(accounts);
+    }
 
     const handleSave = async () => {
         setSaving(true);
@@ -81,6 +88,13 @@ export function TransactionCard({
         } finally {
             setDeleting(false);
         }
+    };
+
+    const handleAccountCreated = (newAccountId: string) => {
+
+        // set the newly created account as selected
+        setEditData({ ...editData, account_id: newAccountId });
+        onRefresh(); // reload accounts from parent
     };
 
     if (editing) {
@@ -136,20 +150,30 @@ export function TransactionCard({
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Account</label>
+                        <div className="flex items-center justify-between mb-1">
+                            <label className="block text-xs font-medium text-gray-700">Account</label>
+                            <button
+                                type="button"
+                                onClick={() => setShowAddAccount(true)}
+                                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                            >
+                                + Add
+                            </button>
+                        </div>
                         <select
                             value={editData.account_id}
                             onChange={(e) => setEditData({ ...editData, account_id: e.target.value })}
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
                         >
                             <option value="">None</option>
-
-                            {accounts.map((acc) => (
+                    
+                            {localAccounts.map((acc) => (
                             <option key={acc.id} value={acc.id}>
                                 {acc.name}
+                                {acc.institution && ` (${acc.institution})`}
                             </option>
                             ))}
-
+                    
                         </select>
                     </div>
 
@@ -253,6 +277,12 @@ export function TransactionCard({
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteDialog(false)}
         loading={deleting}
+      />
+
+      <AddAccountModal
+          isOpen={showAddAccount}
+          onClose={() => setShowAddAccount(false)}
+          onSuccess={handleAccountCreated}
       />
     </>
   )

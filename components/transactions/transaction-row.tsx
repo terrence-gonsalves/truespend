@@ -6,6 +6,7 @@ import { DeleteConfirmDialog } from './delete-confirm-dialog';
 import { formatCurrency } from '@/lib/format';
 import { formatLocalDate } from '@/lib/format-date';
 import type { Transaction, Category, Account } from '@/types/transactions';
+import { AddAccountModal } from '@/components/accounts/add-account-modal';
 
 interface TransactionRowProps {
     transaction: Transaction
@@ -28,6 +29,8 @@ export function TransactionRow({
     const [saving, setSaving] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [showAddAccount, setShowAddAccount] = useState(false);
+    const [localAccounts, setLocalAccounts] = useState(accounts);
     const [editData, setEditData] = useState({
         date: transaction.date,
         description: transaction.description,
@@ -35,6 +38,12 @@ export function TransactionRow({
         category_id: transaction.category_id || '',
         account_id: transaction.account_id || ''
     });
+
+    // update local accounts when props change
+    if (accounts !== localAccounts && accounts.length !== localAccounts.length) {
+        setLocalAccounts(accounts);
+    }   
+
     const handleSave = async () => {
         setSaving(true);
 
@@ -55,7 +64,7 @@ export function TransactionRow({
         } finally {
             setSaving(false);
         }
-    }
+    };
 
     const handleCancel = () => {
         setEditData({
@@ -82,7 +91,14 @@ export function TransactionRow({
         } finally {
             setDeleting(false);
         }
-    }
+    };
+
+    const handleAccountCreated = (newAccountId: string) => {
+
+        // set the newly created account as selected
+        setEditData({ ...editData, account_id: newAccountId });
+        onRefresh(); // reload accounts from parent
+    };
 
     if (editing) {
         return (
@@ -118,26 +134,43 @@ export function TransactionRow({
                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 >
                   <option value="">None</option>
+
                   {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
+                  <option key={cat.id} value={cat.id}>
                       {cat.name}
-                    </option>
+                  </option>
                   ))}
+
                 </select>
               </td>
               <td className="px-6 py-4">
-                <select
-                  value={editData.account_id}
-                  onChange={(e) => setEditData({ ...editData, account_id: e.target.value })}
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                >
-                  <option value="">None</option>
-                  {accounts.map((acc) => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.name}
-                    </option>
-                  ))}
-                </select>
+                  <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                          <label className="text-xs font-medium text-gray-700">Account</label>
+                          <button
+                              type="button"
+                              onClick={() => setShowAddAccount(true)}
+                              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                          >
+                              + Add
+                          </button>
+                      </div>
+                      <select
+                          value={editData.account_id}
+                          onChange={(e) => setEditData({ ...editData, account_id: e.target.value })}
+                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      >
+                          <option value="">None</option>
+
+                          {localAccounts.map((acc) => (
+                          <option key={acc.id} value={acc.id}>
+                              {acc.name}
+                              {acc.institution && ` (${acc.institution})`}
+                          </option>
+                          ))}
+
+                      </select>
+                  </div>
               </td>
               <td className="px-6 py-4">
                 <input
@@ -154,14 +187,14 @@ export function TransactionRow({
                   disabled={saving}
                   className="text-sm text-blue-600 hover:text-blue-900 font-medium disabled:opacity-50"
                 >
-                  {saving ? 'Saving...' : 'Save'}
+                    {saving ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   onClick={handleCancel}
                   disabled={saving}
                   className="text-sm text-gray-600 hover:text-gray-900 font-medium disabled:opacity-50"
                 >
-                  Cancel
+                    Cancel
                 </button>
               </td>
             </tr>
@@ -180,13 +213,14 @@ export function TransactionRow({
               />
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              {formatLocalDate(transaction.date)}
+                {formatLocalDate(transaction.date)}
             </td>
             <td className="px-6 py-4 text-sm text-gray-900">
               {transaction.description}
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm">
-              {transaction.category ? (
+
+                {transaction.category ? (
                 <span
                   className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                   style={{
@@ -196,30 +230,31 @@ export function TransactionRow({
                 >
                   {transaction.category.name}
                 </span>
-              ) : (
+                ) : (
                 <span className="text-gray-400">None</span>
-              )}
+                )}
+                
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {transaction.account?.name || '-'}
+                {transaction.account?.name || '-'}
             </td>
             <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${
               transaction.is_income ? 'text-green-600' : 'text-red-600'
             }`}>
-              {transaction.is_income ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount)).replace('$', '')}
+                {transaction.is_income ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount)).replace('$', '')}
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
               <button
                 onClick={() => setEditing(true)}
                 className="text-blue-600 hover:text-blue-900"
               >
-                Edit
+                  Edit
               </button>
               <button
                 onClick={() => setShowDeleteDialog(true)}
                 className="text-red-600 hover:text-red-900"
               >
-                Delete
+                  Delete
               </button>
             </td>
           </tr>
@@ -230,6 +265,12 @@ export function TransactionRow({
               onConfirm={handleDelete}
               onCancel={() => setShowDeleteDialog(false)}
               loading={deleting}
+          />
+
+          <AddAccountModal
+              isOpen={showAddAccount}
+              onClose={() => setShowAddAccount(false)}
+              onSuccess={handleAccountCreated}
           />
         </>
       );
