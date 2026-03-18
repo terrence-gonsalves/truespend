@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createTransaction } from '@/app/actions/transactions';
 import { useToast } from '@/components/ui/toast';
+import { AddAccountModal } from '@/components/accounts/add-account-modal';
 
 interface AddTransactionModalProps {
     isOpen: boolean
@@ -10,7 +11,7 @@ interface AddTransactionModalProps {
     onSuccess: () => void
     categories: Array<{ id: string; name: string; color: string | null }>
     accounts: Array<{ id: string; name: string; institution?: string | null }>
-}
+};
 
 export function AddTransactionModal({
     isOpen,
@@ -20,6 +21,8 @@ export function AddTransactionModal({
     accounts
 }: AddTransactionModalProps) {
     const [loading, setLoading] = useState(false);
+    const [showAddAccount, setShowAddAccount] = useState(false);
+    const [localAccounts, setLocalAccounts] = useState(accounts);
     const [formData, setFormData] = useState({
         date: new Date().toISOString().split('T')[0],
         description: '',
@@ -30,16 +33,23 @@ export function AddTransactionModal({
     });
     const { showToast } = useToast();
 
+    // update local accounts when props change
+    if (accounts !== localAccounts && accounts.length !== localAccounts.length) {
+        setLocalAccounts(accounts);
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!formData.description.trim()) {
             showToast('Please enter a description', 'warning');
+
             return;
         }
 
         if (!formData.amount || parseFloat(formData.amount) <= 0) {
             showToast('Please enter a valid amount', 'warning');
+
             return;
         }
 
@@ -56,7 +66,7 @@ export function AddTransactionModal({
             });
 
             showToast('Transaction added successfully!', 'success');
-        
+            
             // reset form
             setFormData({
                 date: new Date().toISOString().split('T')[0],
@@ -77,6 +87,14 @@ export function AddTransactionModal({
         }
     }
 
+    const handleAccountCreated = (newAccountId: string) => {
+
+        // refresh will be handled by parent onSuccess
+        // but we can optimistically set the new account as selected
+        setFormData({ ...formData, account_id: newAccountId });
+        onSuccess(); // this will reload accounts in parent
+    };
+
     const handleCancel = () => {
         setFormData({
             date: new Date().toISOString().split('T')[0],
@@ -86,159 +104,184 @@ export function AddTransactionModal({
             account_id: '',
             is_income: false
         });
+
         onClose();
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="flex min-h-screen items-center justify-center p-4">
-                <div className="fixed inset-0 bg-black bg-opacity-30" onClick={handleCancel} />
-                
-                <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                        Add Transaction
-                    </h2>
+        <>
+            <div className="fixed inset-0 z-50 overflow-y-auto">
+                <div className="flex min-h-screen items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-black bg-opacity-30" onClick={handleCancel} />
+                    
+                    <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                            Add Transaction
+                        </h2>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Type
-                            </label>
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, is_income: false })}
-                                    className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Type
+                                </label>
+
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, is_income: false })}
+                                        className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
                                         !formData.is_income
-                                        ? 'bg-red-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                    }`}
-                                >
-                                    Expense
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, is_income: true })}
-                                    className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
+                                            ? 'bg-red-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        Expense
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, is_income: true })}
+                                        className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
                                         formData.is_income
-                                        ? 'bg-green-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                    }`}
-                                >
-                                    Income
-                                </button>
+                                            ? 'bg-green-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        Income
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Date *
-                            </label>
-                            <input
-                                type="date"
-                                value={formData.date}
-                                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                required
-                            />
-                        </div>
-                        
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Description *
-                            </label>
-                            <input
-                                type="text"
-                                value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="e.g., Grocery shopping, Salary, Rent"
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                required
-                            />
-                        </div>
-                        
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Amount *
-                            </label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Date *
+                                </label>
+
                                 <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={formData.amount}
-                                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                placeholder="0.00"
-                                className="w-full pl-7 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                required
+                                    type="date"
+                                    value={formData.date}
+                                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    required
                                 />
                             </div>
-                        </div>
-                        
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Category
-                            </label>
-                            <select
-                                value={formData.category_id}
-                                onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            >
-                                <option value="">Select a category...</option>
 
-                                {categories.map((category) => (
-                                <option key={category.id} value={category.id}>
-                                    {category.name}
-                                </option>
-                                ))}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Description *
+                                </label>
 
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Account
-                            </label>
-                            <select
-                                value={formData.account_id}
-                                onChange={(e) => setFormData({ ...formData, account_id: e.target.value })}
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            >
-                                <option value="">Select an account...</option>
+                                <input
+                                    type="text"
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    placeholder="e.g., Grocery shopping, Salary, Rent"
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Amount *
+                                </label>
 
-                                {accounts.map((account) => (
-                                <option key={account.id} value={account.id}>
-                                    {account.name}
-                                    {account.institution && ` (${account.institution})`}
-                                </option>
-                                ))}
+                                <div className="relative">
+                                    <span className="absolute left-3 top-2 text-gray-500">$</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        value={formData.amount}
+                                        onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                        placeholder="0.00"
+                                        className="w-full pl-7 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        required
+                                    />
+                                </div>
+                            </div>
 
-                            </select>
-                        </div>
-                        
-                        <div className="flex gap-3 pt-4">
-                            <button
-                                type="button"
-                                onClick={handleCancel}
-                                disabled={loading}
-                                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                            >
-                                {loading ? 'Adding...' : 'Add Transaction'}
-                            </button>
-                        </div>
-                    </form>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Category
+                                </label>
+
+                                <select
+                                    value={formData.category_id}
+                                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                >
+                                    <option value="">Select a category...</option>
+
+                                    {categories.map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                    ))}
+
+                                </select>
+                            </div>
+
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Account
+                                    </label>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAddAccount(true)}
+                                        className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                    >
+                                        + Add Account
+                                    </button>
+                                </div>
+
+                                <select
+                                    value={formData.account_id}
+                                    onChange={(e) => setFormData({ ...formData, account_id: e.target.value })}
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                >
+                                    <option value="">Select an account...</option>
+
+                                    {localAccounts.map((account) => (
+                                    <option key={account.id} value={account.id}>
+                                        {account.name}
+                                        {account.institution && ` (${account.institution})`}
+                                    </option>
+                                    ))}
+
+                                </select>
+                            </div>
+                            
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={handleCancel}
+                                    disabled={loading}
+                                    className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                                >
+                                    {loading ? 'Adding...' : 'Add Transaction'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <AddAccountModal
+                isOpen={showAddAccount}
+                onClose={() => setShowAddAccount(false)}
+                onSuccess={handleAccountCreated}
+            />
+        </>
     );
 }
