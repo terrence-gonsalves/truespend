@@ -94,6 +94,7 @@ export function TransactionRow({
     };
 
     const handleAccountCreated = (newAccountId: string) => {
+      console.log('handleAccountCreated accessed!!!');
 
         // set the newly created account as selected
         setEditData({ ...editData, account_id: newAccountId });
